@@ -1,0 +1,90 @@
+.el-menu {
+    user-select: none;
+    .el-sub-menu__title:hover {
+        background-color: var(--el-color-primary-light-9) !important;
+    }
+}
+
+.el-table {
+    --el-table-border-color: var(--ba-border-color);
+}
+
+.el-card {
+    border: none;
+    .el-card__header {
+        border-bottom: 1px solid var(--el-border-color-extra-light);
+    }
+}
+
+.el-divider__text.is-center {
+    transform: translateX(-50%) translateY(-62%);
+}
+
+/* 修复 Chrome 浏览器输入框内选中字符行高异常的问题开始 <<< */
+.el-input {
+    .el-input__inner {
+        line-height: calc(var(--el-input-height, 40px) - 4px);
+    }
+}
+/* 修复 Chrome 浏览器输入框内选中字符行高异常的问题结束 >>> */
+
+/* 输入框样式统一开始 <<< */
+.el-input-number.is-controls-right {
+    .el-input__wrapper {
+        padding-left: 11px;
+    }
+    .el-input__inner {
+        text-align: left;
+    }
+}
+.el-textarea__inner {
+    padding: 5px 11px;
+}
+.datetime-picker {
+    height: 32px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.w100 .el-input__wrapper {
+    width: 100%;
+}
+/* 输入框样式统一结束 >>> */
+
+/* dialog 滚动条样式优化开始 <<< */
+.el-overlay-dialog,
+.ma-scroll-style {
+    &::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #eaeaea;
+        border-radius: var(--el-border-radius-base);
+        box-shadow: none;
+        -webkit-box-shadow: none;
+    }
+    &:hover {
+        &::-webkit-scrollbar-thumb:hover {
+            background: #c8c9cc;
+        }
+    }
+}
+@supports not (selector(::-webkit-scrollbar)) {
+    .el-overlay-dialog,
+    .ba-scroll-style {
+        scrollbar-width: thin;
+        scrollbar-color: #c8c9cc #eaeaea;
+    }
+}
+/* dialog 滚动条样式优化结束 >>> */
+
+/* 小屏设备 el-radio-group 样式优化开始 <<< */
+.ma-input-item-radio {
+    margin-bottom: 10px;
+    .el-radio-group {
+        .el-radio {
+            margin-bottom: 8px;
+        }
+    }
+}
+/* 小屏设备 el-radio-group 样式优化结束 >>> */

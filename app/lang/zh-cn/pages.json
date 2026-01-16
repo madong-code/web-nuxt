@@ -1,0 +1,34 @@
+{
+  "pages": {
+    "article": {
+      "list": "文章资讯",
+      "detail": "文章详情"
+    },
+    "index": {
+      "index": "首页"
+    },
+    "app":{
+      "index": "首页",
+      "member":{
+        "center": "个人中心",
+        "point": "我的积分",
+        "balance": "我的余额"
+      }
+    },
+    "auth": {
+      "agreement": "协议",
+      "login": "登录",
+      "register": "注册",
+      "bind": "手机号绑定"
+    },
+    "member": {
+      "index": "欢迎页",
+      "center": "个人中心",
+      "point": "我的积分",
+      "balance": "我的余额"
+    },
+    "site": {
+      "close": "站点已关闭"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "eslint.useFlatConfig": true,
+
+  // Auto fix
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "i18n-ally.localesPaths": [
+    "app/lang"
+  ],
+  "i18n-ally.keystyle": "nested"
+}

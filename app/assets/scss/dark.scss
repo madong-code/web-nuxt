@@ -1,0 +1,25 @@
+@use 'sass:map';
+@use 'mixins' as *;
+
+// Dark theme variables
+$dark-bg-color: () !default;
+$dark-bg-color: map.merge(
+    (
+        '': #141414,
+        'overlay': #1d1e1f,
+    ),
+    $dark-bg-color
+);
+
+$dark-border-color: () !default;
+$dark-border-color: map.merge(
+    (
+        '': #58585b,
+    ),
+    $dark-border-color
+);
+
+html.dark {
+    @include set-component-css-var('bg-color', $dark-bg-color);
+    @include set-component-css-var('border-color', $dark-border-color);
+}

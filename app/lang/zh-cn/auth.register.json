@@ -1,0 +1,15 @@
+{
+    "registering": "注册中",
+    "username_placeholder": "请输入账号",
+    "password_placeholder": "请输入密码",
+    "confirm_password_placeholder": "请再次确认密码",
+    "confirm_password_error": "两次输入的密码不一致",
+    "resetpwd": "忘记密码",
+    "have_account": "已有账号",
+    "to_login": "去登录",
+    "and": "和",
+    "register_agree_tips": "注册代表您同意",
+    "username_register": "账号注册",
+    "mobile_register": "手机号注册",
+    "mobile_placeholder": "请输入手机号"
+}

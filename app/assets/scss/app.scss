@@ -1,0 +1,127 @@
+@use 'sass:map';
+@use 'mixins' as *;
+@use 'var' as *;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none !important;
+}
+
+html,
+body,
+#app {
+    width: 100%;
+    height: 100%;
+    font-family:
+        Helvetica Neue,
+        Helvetica,
+        PingFang SC,
+        Hiragino Sans GB,
+        Microsoft YaHei,
+        SimSun,
+        sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--ma-bg-color);
+    color: var(--el-text-color-primary);
+    font-size: var(--el-font-size-base);
+}
+
+.w100 {
+    width: 100% !important;
+}
+.h100 {
+    height: 100% !important;
+}
+.-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 鼠标置入浮动效果-s */
+.suspension {
+    transition: all 0.3s ease;
+}
+.suspension:hover {
+    -webkit-transform: translateY(-4px) scale(1.02);
+    -moz-transform: translateY(-4px) scale(1.02);
+    -ms-transform: translateY(-4px) scale(1.02);
+    -o-transform: translateY(-4px) scale(1.02);
+    transform: translateY(-4px) scale(1.02);
+    -webkit-box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    border-radius: 6px;
+}
+/* 鼠标置入浮动效果-e */
+
+/* 输入组件-s */
+.block-help {
+    display: block;
+    width: 100%;
+    color: #909399;
+    font-size: 13px;
+    line-height: 16px;
+    padding-top: 5px;
+}
+.img-preview-dialog .el-dialog__body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    img {
+        max-width: 100%;
+    }
+}
+/* 输入组件-e */
+
+/* 布局相关-s */
+.layouts-main {
+    min-height: calc(100vh - 120px);
+}
+.user-views {
+    padding: 0 15px;
+    .user-views-card {
+        margin-bottom: 15px;
+    }
+}
+.fallback-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ma-aside-drawer {
+    .el-drawer__body {
+        padding: 0;
+    }
+}
+/* 布局相关-e */
+
+/* 暗黑模式公共样式-s */
+.ma-icon-dark {
+    color: var(--el-text-color-primary) !important;
+}
+/* 暗黑模式公共样式-e */
+
+/* 自适应-s */
+@media screen and (max-width: 768px) {
+    .xs-hidden {
+        display: none;
+    }
+}
+/* 自适应-e */
+
+/* 全局遮罩-s */
+.ma-layout-shade {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999990;
+}
+/* 全局遮罩-e */

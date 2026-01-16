@@ -1,0 +1,25 @@
+@use 'sass:map';
+@use 'mixins' as *;
+
+// Light theme variables
+$light-bg-color: () !default;
+$light-bg-color: map.merge(
+    (
+        '': #f5f5f5,
+        'overlay': #ffffff,
+    ),
+    $light-bg-color
+);
+
+$light-border-color: () !default;
+$light-border-color: map.merge(
+    (
+        '': #f6f6f6,
+    ),
+    $light-border-color
+);
+
+:root {
+    @include set-component-css-var('bg-color', $light-bg-color);
+    @include set-component-css-var('border-color', $light-border-color);
+}
