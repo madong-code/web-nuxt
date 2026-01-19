@@ -28,7 +28,7 @@
                             <h3 class="feature-title">官方教程</h3>
                         </div>
                         <p class="feature-description">详尽细致的逐步官方教程，帮助您系统全面地接触Madong，建议在使用前阅读。</p>
-                        <NuxtLink to="https://doc.niucloud.com/v6" target="_blank" class="feature-link">
+                        <NuxtLink to="https://madong.tech/doc" target="_blank" class="feature-link">
                             <el-button type="primary" class="w-full">
                                 <span>前往教程</span>
                                 <el-icon class="ml-2"><ArrowRight /></el-icon>
@@ -43,13 +43,19 @@
                             </div>
                             <h3 class="feature-title">API文档</h3>
                         </div>
-                        <p class="feature-description">通过API文档了解niucloud的正确使用方法，深入理解其运行逻辑和接口规范。</p>
-                        <div class="feature-link">
-                            <el-button type="primary" class="w-full" disabled>
+                        <p class="feature-description">通过API文档了解Madong的正确使用方法，深入理解其运行逻辑和接口规范。</p>
+                        <NuxtLink to="https://demo.madong.tech/adminapi/openapi" target="_blank" class="feature-link">
+                            <el-button type="primary" class="w-full">
                                 <span>前往API文档</span>
                                 <el-icon class="ml-2"><ArrowRight /></el-icon>
                             </el-button>
-                        </div>
+                        </NuxtLink>
+                        <!-- <div class="feature-link">
+                            <el-button type="primary" class="w-full">
+                                <span>前往API文档</span>
+                                <el-icon class="ml-2"><ArrowRight /></el-icon>
+                            </el-button>
+                        </div> -->
                     </div>
                     
                     <div class="feature-card">
@@ -60,7 +66,7 @@
                             <h3 class="feature-title">问答社区</h3>
                         </div>
                         <p class="feature-description">浏览其他用户的问题和解答，获取使用技巧，遇到问题也可以随时提问交流。</p>
-                        <NuxtLink to="https://www.niushop.com/bbs.html" target="_blank" class="feature-link">
+                        <NuxtLink to="https://madong.tech/question" target="_blank" class="feature-link">
                             <el-button type="primary" class="w-full">
                                 <span>前往问答社区</span>
                                 <el-icon class="ml-2"><ArrowRight /></el-icon>

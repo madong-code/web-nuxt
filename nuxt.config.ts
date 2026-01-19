@@ -15,8 +15,9 @@ export default defineNuxtConfig({
   },
 
   app: {
+    baseURL: '/web/', 
     head: {
-      title: 'Element Plus + Nuxt 4',
+      title: 'MADONG-ADMIN 快速开发框架',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
@@ -75,7 +76,7 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: `@use "@/assets/scss/element/index.scss" as element;`,
+          additionalData: `@use "@/assets/scss/element/index.scss" as element;`
         },
       },
     },
