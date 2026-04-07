@@ -3,62 +3,94 @@
     <el-header class="layout-header">
       <layout-header />
     </el-header>
-    <el-main class="layout-main">
-      <div class="layout-content">
-        <slot></slot>
+    <el-scrollbar :style="calcHeight(60)" class="main-scrollbar" ref="mainScrollbarRef">
+      <div class="layout-main">
+        <div class="layout-content">
+          <slot></slot>
+        </div>
+        <layout-footer />
       </div>
-      <layout-footer />
-    </el-main>
+    </el-scrollbar>
   </el-container>
 </template>
 
 <script lang="ts" setup>
+import {  useTemplateRef, watch, provide, onMounted } from 'vue';
 import layoutHeader from "./components/header.vue";
 import layoutFooter from "./components/footer.vue";
+import { useMemberStore } from '@/stores/member';
+
+const route = useRoute();
+const mainScrollbarRef = useTemplateRef('mainScrollbarRef');
+const memberStore = useMemberStore();
+
+// 计算滚动区域高度
+const calcHeight = (headerHeight: number) => {
+  return {
+    height: `calc(100vh - ${headerHeight}px)`,
+    maxHeight: `calc(100vh - ${headerHeight}px)`
+  };
+};
+
+
+// 路由切换时滚动条滚动至顶部
+watch(
+  () => route.fullPath,
+  () => {
+    if (!route.meta.disableScrollTo) {
+      mainScrollbarRef.value?.scrollTo(0, 0);
+    }
+  }
+);
+
+// 将滚动条的 ref provide 给子级组件
+provide('mainScrollbarRef', mainScrollbarRef);
 </script>
 
 <style scoped lang="scss">
 .layout-container {
   width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   
   .layout-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative;
     z-index: 1000;
-    background-color: var(--el-bg-color);
-    box-shadow: var(--el-box-shadow-light);
+    background-color: var(--ma-bg-color-overlay);
     height: 60px;
+    flex-shrink: 0;
   }
   
-  .layout-main {
-    --el-main-padding: 0 !important;
-    padding: 0 !important;
-    min-height: calc(100vh - 60px);
-    margin-top: 60px;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
+  .main-scrollbar {
+    flex: 1;
+    overflow: hidden;
     
-    .layout-content {
-      flex: 1;
-      min-height: var(--content-min-height, 500px);
+    .layout-main {
+      width: 100%;
+      max-width: 100%;
       display: flex;
       flex-direction: column;
-      width: 100%;
-      max-width: 100%;
-      overflow-x: hidden;
-    }
-    
-    .layout-footer {
-      flex-shrink: 0;
-      margin-top: auto;
-      width: 100%;
-      max-width: 100%;
+      min-height: 100%;
+      
+      .layout-content {
+        flex: 1;
+        min-height: var(--content-min-height, 500px);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 0;
+      }
+      
+      .layout-footer {
+        flex-shrink: 0;
+        margin-top: auto;
+        width: 100%;
+        max-width: 100%;
+      }
     }
   }
 }
@@ -94,8 +126,6 @@ import layoutFooter from "./components/footer.vue";
 
 /* 组件样式适配 */
 .layout-header {
-  background-color: var(--el-bg-color) !important;
-  box-shadow: var(--el-box-shadow-light) !important;
   position: fixed;
   width: 100%;
   z-index: 1000;
@@ -146,41 +176,77 @@ import layoutFooter from "./components/footer.vue";
   }
 }
 
+/* 滚动条样式优化 */
+.main-scrollbar {
+  :deep(.el-scrollbar__thumb) {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  :deep(.el-scrollbar__track) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* 深色模式滚动条 */
+@at-root html.dark {
+  .main-scrollbar {
+    :deep(.el-scrollbar__thumb) {
+      background-color: rgba(255, 255, 255, 0.2);
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+    
+    :deep(.el-scrollbar__track) {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+  
+  .page-index {
+    background: url(~/assets/images/bg-dark.jpg) repeat;
+  }
+}
+
 /* 响应式适配 */
 @media screen and (max-width: 1024px) {
-  .page-index {
-    .layout-main {
-      .layout-content {
-        /* 平板端首页样式 */
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          padding: 0 15px;
+          --content-min-height: 400px;
+        }
       }
     }
   }
 }
 
-@media screen and (max-width: 375px) {
-  .page-index {
-    .layout-main {
-      .layout-content {
-        /* 小屏手机首页样式 */
+@media screen and (max-width: 768px) {
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          padding: 0 10px;
+          --content-min-height: 300px;
+        }
       }
     }
   }
 }
 
 @media screen and (max-height: 650px) {
-  .page-index {
-    .layout-main {
-      .layout-content {
-        /* 矮屏设备样式 */
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          --content-min-height: 200px;
+        }
       }
     }
-  }
-}
-
-/* 深色模式 */
-@at-root html.dark {
-  .page-index {
-    background: url(~/assets/images/bg-dark.jpg) repeat;
   }
 }
 </style>

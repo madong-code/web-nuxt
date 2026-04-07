@@ -1,4 +1,6 @@
 // https://v3.nuxtjs.org/docs/directory-structure/nuxt.config
+import path from 'path'
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
@@ -6,8 +8,8 @@ export default defineNuxtConfig({
     '@unocss/nuxt',
     '@pinia/nuxt',
     '@element-plus/nuxt',
-    '@nuxtjs/color-mode',
-    'nuxt-icons'
+    'nuxt-icons',
+    'pinia-plugin-persistedstate/nuxt'
   ],
 
   devtools: {
@@ -15,34 +17,23 @@ export default defineNuxtConfig({
   },
 
   app: {
-    baseURL: '/web/', 
+    baseURL: '/web',
     head: {
-      title: 'MADONG-ADMIN 快速开发框架',
-      meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content: 'ElementPlus + Nuxt3',
-        },
-      ],
-      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+      htmlAttrs: {
+        lang: 'zh-cn'
+      }
     }
   },
 
   // css
   css: [
-    '@unocss/reset/tailwind.css',
+    '~/assets/css/uno-reset.css',
     '~/assets/scss/index.scss'
   ],
 
   // vueuse
   vueuse: {
     ssrHandlers: true,
-  },
-
-  // colorMode
-  colorMode: {
-    classSuffix: '',
   },
 
   future: {
@@ -83,11 +74,19 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         "/api": {
-          target: "http://127.0.0.1",
+          target: "http://127.0.0.1:8001",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "/api"),
         },
+        "/upload": {
+          target: "http://127.0.0.1:8001",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/upload/, "/upload"),
+        },
       },
+    },
+    optimizeDeps: {
+      include: ['@wangeditor/editor', '@wangeditor/editor-for-vue'],
     },
   },
 
@@ -96,5 +95,5 @@ export default defineNuxtConfig({
     importStyle: 'scss',
     themes: ['dark'],
   },
-  ssr: false,
+  ssr: true,
 })

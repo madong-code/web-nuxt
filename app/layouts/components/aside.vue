@@ -11,38 +11,38 @@
         <el-menu
             class="member-sidebar__menu"
             :default-active="activeMenu"
-            router
             unique-opened
         >
-            <template v-for="(item, idx) in personalCenterStore.state.user_menus" :key="idx">
+            <div v-for="(item, idx) in systemStore.site.member_menu" :key="idx">
                 <el-sub-menu 
-                    v-if="item.children && item.children.length"
+                    v-if="item.children && item.children.length && checkMenuShow(item)"
                     :index="item.id.toString()"
                 >
                     <template #title>
-                        <Icon v-if="item.icon" :name="item.icon" size="16" />
+                        <Icon v-if="item.icon" :icon="item.icon" size="16" />
                         <span>{{ item.title }}</span>
                     </template>
-                    <el-menu-item 
-                        v-for="(menu, index) in item.children"
-                        :key="index"
-                        :index="menu.path"
-                        @click="routerPush(menu)"
-                    >
-                        <Icon v-if="menu.icon" :name="menu.icon" size="16" />
-                        <span>{{ menu.title }}</span>
-                    </el-menu-item>
+                    <div v-for="(menu, index) in item.children.filter(m => m)" :key="index">
+                        <el-menu-item 
+                            v-if="checkMenuShow(menu)"
+                            :index="menu.path"
+                            @click="routerPush(menu)"
+                        >
+                            <Icon v-if="menu.icon" :icon="menu.icon" size="16" />
+                            <span>{{ menu.title }}</span>
+                        </el-menu-item>
+                    </div>
                 </el-sub-menu>
                 
                 <el-menu-item 
-                    v-else
+                    v-else-if="checkMenuShow(item)"
                     :index="item.path"
                     @click="routerPush(item)"
                 >
-                    <Icon v-if="item.icon" :name="item.icon" size="16" />
+                    <Icon v-if="item.icon" :icon="item.icon" size="16" />
                     <span>{{ item.title }}</span>
                 </el-menu-item>
-            </template>
+            </div>
         </el-menu>
     </el-aside>
 </template>
@@ -51,10 +51,31 @@
 import type { Menus } from '~/stores/interface'
 // 在组件顶部导入图片
 import defaultAvatar from '~/assets/images/default_avatar.png'
+import { useSystemStore } from '~/stores/system'
+import { useMemberStore } from '~/stores/member'
+import { useRoute, navigateTo } from 'nuxt/app'
+import { computed } from 'vue'
+import { fullUrl } from '~/utils/common'
+import { Icon } from '~/components/icon'
 
 const route = useRoute()
 const memberStore = useMemberStore()
-const personalCenterStore = usePersonalCenterStore()
+const systemStore = useSystemStore()
+
+const checkMenuShow = (menu: Menus): boolean => {
+    if (!menu) {
+        return false
+    }
+    
+    const permissions = menu.meta?.permissions
+    
+    if (!permissions || permissions.length === 0) {
+        return true
+    }
+    
+    const result = systemStore.checkMenuPermission(menu)
+    return result
+}
 
 // 当前激活的菜单
 const activeMenu = computed(() => {
@@ -72,13 +93,34 @@ const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
 }
 
 /**
+ * 处理菜单点击
+ */
+const onClickMenu = (menu: Menus) => {
+    if (systemStore.isDirectory(menu)) {
+        return
+    }
+
+    if (systemStore.isExternalLink(menu)) {
+        const target = systemStore.getTarget(menu)
+        if (menu.url) {
+            window.open(menu.url, target)
+        }
+        return
+    }
+
+    if (menu.path) {
+        navigateTo(menu.path)
+    }
+}
+
+/**
  * 菜单跳转
  */
 const routerPush = (route: string | Menus) => {
     if (typeof route === 'string') {
         navigateTo(route)
     } else {
-        onClickMenu(route as any)
+        onClickMenu(route)
     }
 }
 </script>
@@ -86,7 +128,7 @@ const routerPush = (route: string | Menus) => {
 <style scoped lang="scss">
 .member-sidebar {
     width: 240px;
-    background-color: var(--ba-bg-color-overlay);
+    background-color: var(--ma-bg-color-overlay);
     box-shadow: var(--el-box-shadow-light);
     border-radius: 8px;
     overflow: hidden;
@@ -124,7 +166,7 @@ const routerPush = (route: string | Menus) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--ba-bg-color-overlay);
+    background-color: var(--ma-bg-color-overlay);
     border-radius: 50%;
     box-shadow: var(--el-box-shadow);
 }
@@ -195,6 +237,12 @@ const routerPush = (route: string | Menus) => {
     
     .member-sidebar__button {
         width: 100%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .member-sidebar {
+        display: none;
     }
 }
 </style>

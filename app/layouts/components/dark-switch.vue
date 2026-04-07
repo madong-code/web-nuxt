@@ -2,20 +2,22 @@
     <div class="theme-toggle-content" @click="toggleDark">
         <div class="switch">
             <div class="switch-action">
-                <Icon name="local-dark" color="#ffffff" size="13px" class="switch-icon dark-icon" />
-                <Icon name="local-light" color="#303133" size="13px" class="switch-icon light-icon" />
+                <Icon icon="ant-design:moon-outlined" color="#ffffff" size="13px" class="switch-icon dark-icon" />
+                <Icon icon="ant-design:sun-outlined" color="#303133" size="13px" class="switch-icon light-icon" />
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-const color = useColorMode()
+import { ref, computed } from 'vue'
+import { Icon } from '~/components/icon'
+import { getDark, setDark } from '~/utils/dark'
 
+const isDark = computed(() => getDark())
 
 function toggleDark() {
-  color.preference = color.value === 'dark' ? 'light' : 'dark'
+  setDark(!isDark.value)
 }
 
 </script>

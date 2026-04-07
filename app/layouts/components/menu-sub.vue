@@ -1,26 +1,29 @@
 <template>
-    <template v-for="(item, idx) in props.menus" :key="idx">
-        <template v-if="!isEmpty(item.children)">
-            <el-sub-menu @click="onClickSubMenu(item)" v-blur :index="`column-${item.id}`">
-                <template #title>
-                    <Icon v-if="showIcon && item.icon" :name="item.icon" color="var(--el-text-color-primary)" />
-                    {{ item.title }}
-                </template>
-                <MenuSub :menus="item.children" :show-icon="showIcon" />
-            </el-sub-menu>
-        </template>
-        <template v-else>
-            <el-menu-item @click="onClickMenu(item)" v-blur :index="'column-' + item.id" :class="item.name.replace(/[\/]/g, '-')">
-                <Icon v-if="showIcon && item.icon" :name="item.icon" color="var(--el-text-color-primary)" />
-                <template #title>{{ item.title }}</template>
-            </el-menu-item>
-        </template>
-    </template>
+    <div v-for="(item, idx) in props.menus" :key="idx">
+        <el-sub-menu v-if="systemStore.hasChildren(item) && checkMenuShow(item)" :index="`column-${item.id}`">
+            <template #title>
+                <Icon v-if="showIcon && item.icon" :icon="item.icon" color="var(--el-text-color-primary)" />
+                {{ item.title }}
+            </template>
+            <MenuSub :menus="item.children" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
+        </el-sub-menu>
+        <el-menu-item 
+            v-else-if="checkMenuShow(item)"
+            @click="onClickMenu(item)" 
+            :index="'column-' + item.id" 
+            :class="item.name.replace(/[\/]/g, '-')"
+        >
+            <Icon v-if="showIcon && item.icon" :icon="item.icon" color="var(--el-text-color-primary)" />
+            <template #title>{{ item.title }}</template>
+        </el-menu-item>
+    </div>
 </template>
 
 <script setup lang="ts">
-import { isEmpty } from 'lodash-es'
 import type { Menus } from '~/stores/interface'
+import { navigateTo } from 'nuxt/app'
+import { useSystemStore } from '~/stores/system'
+import { Icon } from '~/components/icon'
 
 interface Props {
     menus: Menus[]
@@ -32,13 +35,50 @@ const props = withDefaults(defineProps<Props>(), {
     showIcon: false,
 })
 
-const onClickSubMenu = (menu: Menus) => {
-    /**
-     * 1、'/'表示菜单规则的 path 为空
-     * 2、会员中心菜单目录不需要跳转
-     */
-    if (menu.path == '/' || menu.type == 'menu_dir') return
-    onClickMenu(menu)
+const emit = defineEmits<{
+    'menu-click': []
+}>()
+
+const systemStore = useSystemStore()
+
+const checkMenuShow = (menu: Menus): boolean => {
+    if (!menu) {
+        return false
+    }
+    
+    const permissions = menu.meta?.permissions
+    
+    if (!permissions || permissions.length === 0) {
+        return true
+    }
+    
+    return systemStore.checkMenuPermission(menu)
+}
+
+const onClickMenu = (menu: Menus) => {
+    // 检查权限
+    if (!systemStore.checkMenuPermission(menu)) {
+        return
+    }
+
+    if (systemStore.isDirectory(menu)) {
+        return
+    }
+
+    // 先触发菜单点击事件，关闭弹窗
+    emit('menu-click')
+
+    if (systemStore.isExternalLink(menu)) {
+        const target = systemStore.getTarget(menu)
+        if (menu.url) {
+            window.open(menu.url, target)
+        }
+        return
+    }
+
+    if (menu.path) {
+        navigateTo(menu.path)
+    }
 }
 </script>
 

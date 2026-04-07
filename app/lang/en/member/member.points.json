@@ -1,0 +1,15 @@
+{
+  "page_title": "Points Record",
+  "current_points": "Current Points",
+  "monthly_points": "This Month Earned",
+  "total_points": "Total Earned",
+  "record_id": "Record ID",
+  "type": "Type",
+  "type_earn": "Earned",
+  "type_deduct": "Deducted",
+  "points": "Points",
+  "reason": "Reason",
+  "time": "Time",
+  "loading": "Loading",
+  "no_data": "No Data"
+}

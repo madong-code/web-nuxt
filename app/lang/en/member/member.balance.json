@@ -1,0 +1,16 @@
+{
+  "page_title": "Balance Record",
+  "current_balance": "Current Balance",
+  "total_transaction": "Total Transaction",
+  "record_id": "Record ID",
+  "type": "Type",
+  "type_income": "Income",
+  "type_expense": "Expense",
+  "amount": "Amount",
+  "description": "Description",
+  "time": "Time",
+  "loading": "Loading",
+  "no_data": "No Data",
+  "recharge": "Recharge",
+  "withdraw": "Withdraw"
+}

@@ -1,0 +1,20 @@
+{
+  "login": "Login",
+  "logining": "Logging in",
+  "username_placeholder": "Please enter username",
+  "password_placeholder": "Please enter password",
+  "resetpwd": "Forgot Password",
+  "no_account": "Don't have an account",
+  "to_register": "Register",
+  "and": "and",
+  "agree_tips": "By logging in, you agree to",
+  "username_login": "Password Login",
+  "mobile_login": "SMS Code Login",
+  "mobile_placeholder": "Please enter mobile number",
+  "wechat_scan_login": "Scan QR Code Login",
+  "wechat_scan_tips": "Please scan QR code with WeChat to login",
+  "qrcode_generate_failed": "Failed to generate QR code, please refresh and try again",
+  "click_refresh": "Click to refresh",
+  "wechat_scan_tip": "Please scan QR code with WeChat to login",
+  "wechat_login_not_available": "WeChat scan login is not available"
+}

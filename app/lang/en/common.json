@@ -1,3 +1,41 @@
 {
-        "language": "语言en"
+  "language": "Language",
+  "logout_login": "Logout",
+  "member_center": "Member Center",
+  "login": "Login",
+  "register": "Register",
+  "user": "User",
+  "get_sms_code": "Get SMS Code",
+  "sms_code_change_text": "seconds to resend",
+  "captcha_title": "Please complete security verification",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "siteClose": "Site Closed",
+  "setting": {
+    "config": {
+      "common": {
+        "title": "Common Config",
+        "description": "Common Config - Key-Value format with hierarchical data support",
+        "noData": "No Data",
+        "viewData": "View Data"
+      }
+    }
+  },
+  "request": {
+    "unknownError": "Unknown Error",
+    "400": "Bad Request",
+    "401": "Please Login Again",
+    "403": "Access Denied",
+    "404": "Request Error",
+    "405": "Method Not Allowed",
+    "408": "Request Timeout",
+    "409": "Request Cross-Origin",
+    "500": "Server Error, Reason:",
+    "501": "Network Not Implemented",
+    "502": "Network Error",
+    "503": "Service Unavailable",
+    "504": "Network Timeout",
+    "505": "HTTP Version Not Supported",
+    "timeout": "Network Request Timeout!"
+  }
 }

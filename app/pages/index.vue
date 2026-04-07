@@ -1,5 +1,7 @@
 <template>
     <div class="page-container">
+        <div class="page-header">
+        </div>
         <!-- 轮播图区域 -->
         <section class="hero-section">
             <el-carousel height="500px" arrow="never" indicator-position="none">
@@ -28,7 +30,7 @@
                             <h3 class="feature-title">官方教程</h3>
                         </div>
                         <p class="feature-description">详尽细致的逐步官方教程，帮助您系统全面地接触Madong，建议在使用前阅读。</p>
-                        <NuxtLink to="https://madong.tech/doc" target="_blank" class="feature-link">
+                        <NuxtLink to="https://madong.tech/docs" target="_blank" class="feature-link">
                             <el-button type="primary" class="w-full">
                                 <span>前往教程</span>
                                 <el-icon class="ml-2"><ArrowRight /></el-icon>
@@ -66,7 +68,7 @@
                             <h3 class="feature-title">问答社区</h3>
                         </div>
                         <p class="feature-description">浏览其他用户的问题和解答，获取使用技巧，遇到问题也可以随时提问交流。</p>
-                        <NuxtLink to="https://madong.tech/question" target="_blank" class="feature-link">
+                        <NuxtLink to="https://madong.tech/ask" target="_blank" class="feature-link">
                             <el-button type="primary" class="w-full">
                                 <span>前往问答社区</span>
                                 <el-icon class="ml-2"><ArrowRight /></el-icon>
@@ -92,11 +94,19 @@
                 </div>
             </div>
         </section>
+
+        <!-- 右侧悬浮广告 -->
+        <Advertisement
+            type="simple"
+            :offset="0"
+            :limit="5"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ArrowRight, ChatDotRound } from '@element-plus/icons-vue'
+import Advertisement from '~/components/advertisement'
 </script>
 
 <style lang="scss" scoped>
@@ -126,6 +136,48 @@ import { ArrowRight, ChatDotRound } from '@element-plus/icons-vue'
     background-size: 100%;
     background-repeat: no-repeat;
     padding: 60px 0 200px;
+}
+
+.ad-section {
+    width: 100%;
+    background: linear-gradient(135deg, #f8f9ff 0%, #fff5f7 100%);
+    position: relative;
+    overflow: hidden;
+
+    // 装饰性背景
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .ad-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    &.ad-section-top {
+        padding: 32px 0;
+    }
+
+    &.ad-section-middle {
+        padding: 48px 0;
+        margin: 60px 0;
+    }
+
+    &.ad-section-bottom {
+        padding: 48px 0;
+    }
 }
 
 .content-container {
@@ -249,46 +301,65 @@ import { ArrowRight, ChatDotRound } from '@element-plus/icons-vue'
         max-width: 100%;
         padding: 0 20px;
     }
-    
+
     .section-header {
         margin-bottom: 60px;
-        
+
         .section-title {
             font-size: 32px;
         }
     }
-    
+
     .features-grid {
         grid-template-columns: 1fr; // 移动端显示1列
         gap: 20px;
     }
-    
+
     .feature-card {
         padding: 20px;
     }
-    
+
     .hero-section .hero-background {
         height: 300px;
     }
-    
+
     .content-section {
         padding: 40px 0 120px;
     }
-    
+
     .feature-header {
         .feature-icon {
             width: 30px;
             height: 30px;
         }
-        
+
         .feature-title {
             font-size: 18px;
         }
     }
-    
+
     .feature-description {
         font-size: 14px;
         min-height: auto; // 移动端取消固定高度
+    }
+
+    .ad-section {
+        .ad-container {
+            padding: 24px 20px;
+        }
+
+        &.ad-section-top {
+            padding: 24px 0;
+        }
+
+        &.ad-section-middle {
+            padding: 32px 0;
+            margin: 32px 0;
+        }
+
+        &.ad-section-bottom {
+            padding: 32px 0;
+        }
     }
 }
 

@@ -1,16 +1,25 @@
 <template>
   <el-menu :default-active="state.activeMenu" @select="onSelect">
-    <el-sub-menu v-blur index="language-switch" class="language-switch">
+    <!-- 语言切换 -->
+    <el-sub-menu 
+      v-if="configStore.language.is_enabled && availableLanguages.length > 1" 
+      index="language-switch" 
+      class="language-switch"
+      :key="languageKey"
+    >
       <template #title>
-        <Icon v-if="showIcon" name="local-lang" color="var(--el-text-color-primary)" />
-        {{ t("language") }}
+        <Icon v-if="showIcon" icon="ant-design:translation-outlined" color="var(--el-text-color-primary)" />
+        {{ t("common.language") }}
       </template>
+     
       <el-menu-item
-        @click="systemStore.setLanguage(item.name)"
+        @click="handleLanguageChange(item.name)"
         v-for="item in availableLanguages"
         :key="item.name"
-        :index="'language-switch-' + item.value"
+        :index="'language-switch-' + item.name"
         class="language-switch"
+        :class="{ 'is-active': item.name === currentLanguage }"
+        :title="`item.name: ${item.name}, currentLanguage: ${currentLanguage}`"
       >
         {{ item.value }}
       </el-menu-item>
@@ -18,6 +27,7 @@
 
     <!-- 主题切换 -->
     <el-menu-item
+      v-if="configStore.theme.is_enabled"
       index="theme-switch"
       class="theme-switch"
       :class="$attrs.mode + '-theme-switch'"
@@ -29,8 +39,6 @@
     <!-- 已登录用户场景 -->
     <el-sub-menu
       v-if="memberStore.info"
-      @click="$attrs.mode == 'vertical' ? '' : navigateTo('/member/profile')"
-      v-blur
       index="user-box"
     >
       <template #title>
@@ -41,63 +49,87 @@
             :src="getAvatarUrl(memberStore?.info?.avatar || '')"
             alt=""
           />
-          {{ memberStore?.info?.nickname || t("user") }}
+          {{ memberStore?.info?.nickname || t("common.user") }}
         </div>
       </template>
 
-      <el-menu-item @click="navigateTo('/member/profile')" v-blur index="user">
+      <el-menu-item index="user" @click="$emit('menu-click'); navigateTo('/member/profile')">
         <Icon
           v-if="showIcon"
-          name="fa fa-user-circle"
+          icon="ant-design:user-outlined"
           color="var(--el-text-color-primary)"
         />
-        {{ t("member_center") }}
+        {{ t("common.member_center") }}
       </el-menu-item>
 
-      <!-- 动态菜单 -->
-      <MenuSub :menus="personalCenterStore.state.nav_user_menus" :show-icon="showIcon" />
-
       <!-- 会员中心菜单 -->
-      <MenuSub :menus="personalCenterStore.state.user_menus" :show-icon="showIcon" />
+      <MenuSub :menus="systemStore.site.member_menu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
 
-      <el-menu-item @click="memberStore.logout()" v-blur index="user-logout">
+      <el-menu-item @click="$emit('menu-click'); memberStore.logout()" index="user-logout">
         <Icon
           v-if="showIcon"
-          name="fa fa-sign-out"
+          icon="ant-design:logout-outlined"
           color="var(--el-text-color-primary)"
         />
-        {{ t("logout_login") }}
+        {{ t("common.logout_login") }}
       </el-menu-item>
     </el-sub-menu>
 
     <!-- 未登录场景 -->
-    <el-menu-item v-else @click="handleLogin" v-blur index="user">
+    <el-menu-item v-else @click="handleLoginClick" index="user">
       <Icon
         v-if="showIcon"
-        name="fa fa-user-circle"
+        icon="ant-design:user-outlined"
         color="var(--el-text-color-primary)"
       />
-      {{ t("login") }}
+      {{ t("common.login") }}
     </el-menu-item>
   <LoadingDialog />
 
   </el-menu>
 </template>
 <script setup lang="ts">
+import { computed, reactive, ref, nextTick, onMounted, onUnmounted, watch } from "vue";
+import { navigateTo } from "nuxt/app";
 import type { Menus } from "~/stores/interface";
 import defaultAvatar from "~/assets/images/default_avatar.png";
-
+import { fullUrl, getToken } from "~/utils/common";
 import DarkToggle from "./dark-toggle.vue";
 import DarkSwitch from "./dark-switch.vue";
 import LoadingDialog from "@/components/login-dialog/index.vue";
 import MenuSub from "./menu-sub.vue";
+import { Icon } from '~/components/icon';
+import { ElMessage } from "element-plus";
+import { useMemberStore } from "~/stores/member";
+import { useSystemStore } from "~/stores/system";
+import { useConfigStore } from "~/stores/config";
+import { t } from "~/composables/lang";
+import { getDark, setDark } from "~/utils/dark";
+
 
 const memberStore = useMemberStore();
 const systemStore = useSystemStore();
 const configStore = useConfigStore();
-const availableLanguages = computed(() => systemStore.getLanguages);
-const currentLanguage = computed(() => systemStore.lang);
-const personalCenterStore = usePersonalCenterStore();
+
+// 添加响应式的语言 key，用于强制组件重新渲染
+const languageKey = ref(systemStore.lang);
+
+// 监听语言变化，更新 languageKey
+watch(() => systemStore.lang, (newLang, oldLang) => {
+  if (newLang !== oldLang) {
+    languageKey.value = newLang;
+  }
+}, { immediate: true });
+
+const availableLanguages = computed(() => {
+  const languages = systemStore.getLanguages;
+  return languages;
+});
+const currentLanguage = computed(() => {
+  // 从 systemStore 中获取语言设置，确保与状态保持同步
+  return systemStore.lang;
+});
+
 
 
 interface Props {
@@ -105,8 +137,12 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showIcon: false,
+  showIcon: true,
 });
+
+const emit = defineEmits<{
+  'menu-click': []
+}>();
 
 const state = reactive({
   activeMenu: "",
@@ -143,6 +179,24 @@ const handleLogin = () => {
     return false;
   }
   memberStore.logOpen();
+};
+
+const handleLoginClick = () => {
+  handleLogin();
+  $emit('menu-click');
+};
+
+/**
+ * 处理语言切换
+ * @param lang 语言代码
+ */
+const handleLanguageChange = (lang: string) => {
+  const success = systemStore.setLanguage(lang);
+  
+  // 强制更新 languageKey，触发组件重新渲染
+  languageKey.value = lang;
+  
+  // 不再刷新页面，语言切换应该立即生效
 };
 
 /**
@@ -250,6 +304,8 @@ onUnmounted(() => {
   .theme-switch.is-active,
   .language-switch.is-active {
     border-bottom: none;
+    color: var(--el-menu-active-color) !important;
+    font-weight: 500 !important;
     :deep(.el-sub-menu__title) {
       border-bottom: none;
     }
@@ -258,6 +314,9 @@ onUnmounted(() => {
 .theme-switch {
   --el-menu-hover-bg-color: none;
   padding-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .vertical-theme-switch {
   .theme-toggle-content {
@@ -266,5 +325,11 @@ onUnmounted(() => {
 }
 .theme-toggle-content {
   padding-right: 0;
+}
+
+// 语言切换选中状态
+.language-switch.is-active {
+  color: var(--el-menu-active-color) !important;
+  font-weight: 500;
 }
 </style>

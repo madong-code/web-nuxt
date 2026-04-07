@@ -29,7 +29,7 @@
             <div class="input-container">
               <el-input 
                 v-model="formData.username" 
-                :placeholder="t('username_placeholder')" 
+                :placeholder="t('auth.register.username_placeholder')" 
                 clearable 
                 :inline-message="true"
                 :readonly="realNameInput" 
@@ -39,7 +39,26 @@
               >
                 <template #prefix>
                  <Icon
-                    name="el-icon-User"
+                    icon="ant-design:user-outlined"
+                    :color="isDarkMode ? '#ffffff' : '#000000'"
+                    class="input-prefix-icon"
+                  />
+                </template>
+              </el-input>
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="email" class="form-item">
+            <div class="input-container">
+              <el-input 
+                v-model="formData.email" 
+                :placeholder="t('auth.register.email_placeholder')" 
+                clearable 
+                class="register-input"
+              >
+                <template #prefix>
+                 <Icon
+                    icon="ant-design:mail-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -52,7 +71,7 @@
             <div class="input-container">
               <el-input 
                 v-model="formData.password" 
-                :placeholder="t('password_placeholder')" 
+                :placeholder="t('auth.register.password_placeholder')" 
                 type="password" 
                 clearable 
                 show-password
@@ -60,7 +79,7 @@
               >
                 <template #prefix>
                  <Icon
-                    name="el-icon-Lock"
+                    icon="ant-design:lock-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -72,8 +91,8 @@
           <el-form-item prop="confirmPassword" class="form-item">
             <div class="input-container">
               <el-input 
-                v-model="formData.confirmPassword" 
-                :placeholder="t('confirm_password_placeholder')" 
+                v-model="formData.confirm_password" 
+                :placeholder="t('auth.register.confirm_password_placeholder')" 
                 type="password" 
                 clearable 
                 show-password
@@ -81,7 +100,7 @@
               >
                 <template #prefix>
                  <Icon
-                    name="el-icon-Lock"
+                    icon="ant-design:lock-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -93,13 +112,13 @@
           <el-form-item prop="captchaCode" class="form-item">
             <div class="input-container">
               <el-input 
-                v-model="formData.captchaCode" 
-                :placeholder="t('captcha_placeholder')"
+                v-model="formData.captcha_code" 
+                :placeholder="t('auth.register.captcha_placeholder')"
                 class="register-input"
               >
                 <template #prefix>
                  <Icon
-                    name="local-verify"
+                    icon="ant-design:safety-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -124,13 +143,13 @@
             <div class="input-container">
               <el-input 
                 v-model="formData.mobile" 
-                :placeholder="t('mobile_placeholder')" 
+                :placeholder="t('auth.register.mobile_placeholder')" 
                 clearable
                 class="register-input"
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-Phone"
+                    icon="ant-design:phone-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -142,13 +161,13 @@
           <el-form-item prop="mobileCode" class="form-item">
             <div class="input-container">
               <el-input 
-                v-model="formData.mobileCode" 
-                :placeholder="t('code_placeholder')"
+                v-model="formData.mobile_code" 
+                :placeholder="t('auth.register.code_placeholder')"
                 class="register-input"
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-Key"
+                    icon="ant-design:key-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -157,7 +176,7 @@
                   <sms-code 
                     :mobile="formData.mobile" 
                     type="login" 
-                    v-model="formData.mobileKey" 
+                    v-model="formData.mobile_key" 
                     @click="sendSmsCode" 
                     ref="smsCodeRef"
                   ></sms-code>
@@ -170,7 +189,7 @@
         <!-- 登录链接 -->
         <div class="form-actions">
           <el-button type="primary" link @click="switchToLogin" class="login-link">
-            {{ t('have_account') }}，{{ t('to_login') }}
+            {{ t('auth.register.have_account') }}，{{ t('auth.register.to_login') }}
           </el-button>
         </div>
 
@@ -183,7 +202,7 @@
             @click="handleRegister" 
             :loading="isLoading"
           >
-            {{ isLoading ? t('registering') : t('register') }}
+            {{ isLoading ? t('auth.register.registering') : t('auth.register.register') }}
           </el-button>
         </div>
 
@@ -197,13 +216,13 @@
             :class="isAgreeChecked ? 'icon-xuanze1' : 'icon-checkbox_nol'" 
             @click="toggleAgreement"
           ></span>
-          {{ t('register_agree_tips') }}
+          {{ t('auth.register.register_agree_tips') }}
           <NuxtLink :to="protocolUrls.service" target="_blank">
-            <span class="agreement-link">{{ t('user_agreement') }}</span>
+            <span class="agreement-link">{{ t('auth.register.user_agreement') }}</span>
           </NuxtLink>
-          {{ t('and') }}
+          {{ t('auth.register.and') }}
           <NuxtLink :to="protocolUrls.privacy" target="_blank">
-            <span class="agreement-link">{{ t('privacy_agreement') }}</span>
+            <span class="agreement-link">{{ t('auth.register.privacy_agreement') }}</span>
           </NuxtLink>
         </div>
       </el-form>
@@ -214,8 +233,15 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { registerUser, registerWithMobile } from '@/api/auth'
-import useConfigStore from '@/stores/config'
+import { useConfigStore } from '@/stores/config'
+import { useMemberStore } from '@/stores/member'
+import { useCaptcha } from '~/composables/captcha'
 import type { FormInstance } from 'element-plus'
+import { Icon } from '~/components/icon'
+import {t} from '~/composables/lang'
+import validate from '~/utils/validate'
+import { ElMessage } from 'element-plus'
+
 
 // 状态管理
 const memberStore = useMemberStore()
@@ -227,7 +253,7 @@ const isDarkMode = computed(() => {
 })
 
 // 初始化配置
-configStore.getLoginConfig()
+// 配置已在 app.vue 中统一加载，这里不再重复请求
 
 // 协议链接配置
 const protocolUrls = computed(() => {
@@ -243,10 +269,10 @@ const currentType = ref('')
 const registerTypes = computed(() => {
   const types = []
   if (configStore.login.is_username) {
-    types.push({ type: 'username', title: t('username_register') })
+    types.push({ type: 'username', title: t('auth.register.username_register') })
   }
   if (configStore.login.is_mobile && !configStore.login.is_bind_mobile) {
-    types.push({ type: 'mobile', title: t('mobile_register') })
+    types.push({ type: 'mobile', title: t('auth.register.mobile_register') })
   }
   currentType.value = types[0]?.type || ''
   return types
@@ -256,13 +282,14 @@ const registerTypes = computed(() => {
 const isLoading = ref(false)
 const formData = reactive({
   username: '',
+  email: '',
   password: '',
-  confirmPassword: '',
+  confirm_password: '',
   mobile: '',
-  mobileCode: '',
-  mobileKey: '',
-  captchaKey: '',
-  captchaCode: ''
+  mobile_code: '',
+  mobile_key: '',
+  captcha_key: '',
+  captcha_code: ''
 })
 
 // 表单验证规则
@@ -271,27 +298,43 @@ const formRules = computed(() => ({
   username: {
     type: 'string',
     required: currentType.value === 'username',
-    message: t('username_placeholder'),
+    message: t('auth.register.username_placeholder'),
     trigger: ['blur', 'change'],
   },
-  password: {
-    type: 'string',
-    required: currentType.value === 'username',
-    message: t('password_placeholder'),
-    trigger: ['blur', 'change']
-  },
-  confirmPassword: [
+  email: [
     {
       type: 'string',
       required: currentType.value === 'username',
-      message: t('confirm_password_placeholder'),
+      message: t('auth.register.email_required'),
+      trigger: ['blur', 'change'],
+    },
+    {
+      validator(rule: any, value: string, callback: any) {
+        if (currentType.value !== 'username') return true
+        return validate.email(value)
+      },
+      message: t('auth.register.email_error'),
+      trigger: ['change', 'blur'],
+    }
+  ],
+  password: {
+    type: 'string',
+    required: currentType.value === 'username',
+    message: t('auth.register.password_placeholder'),
+    trigger: ['blur', 'change']
+  },
+  confirm_password: [
+    {
+      type: 'string',
+      required: currentType.value === 'username',
+      message: t('auth.register.confirm_password_placeholder'),
       trigger: ['blur', 'change']
     },
     {
       validator(rule: any, value: string, callback: any) {
         return value === formData.password
       },
-      message: t('confirm_password_error'),
+      message: t('auth.register.confirm_password_error'),
       trigger: ['change', 'blur'],
     }
   ],
@@ -299,7 +342,7 @@ const formRules = computed(() => ({
     {
       type: 'string',
       required: currentType.value === 'mobile' || configStore.login.is_bind_mobile,
-      message: t('mobile_placeholder'),
+      message: t('auth.register.mobile_placeholder'),
       trigger: ['blur', 'change'],
     },
     {
@@ -307,20 +350,20 @@ const formRules = computed(() => ({
         if (currentType.value !== 'mobile' && !configStore.login.is_bind_mobile) return true
         return validate.mobile(value)
       },
-      message: t('mobile_error'),
+      message: t('auth.register.mobile_error'),
       trigger: ['change', 'blur'],
     }
   ],
-  mobileCode: {
+  mobile_code: {
     type: 'string',
     required: currentType.value === 'mobile' || configStore.login.is_bind_mobile,
-    message: t('code_placeholder'),
+    message: t('auth.register.code_placeholder'),
     trigger: ['blur', 'change']
   },
-  captchaCode: {
+  captcha_code: {
     type: 'string',
     required: currentType.value === 'username',
-    message: t('captcha_placeholder'),
+    message: t('auth.register.captcha_placeholder'),
     trigger: ['blur', 'change'],
   }
 }))
@@ -338,7 +381,7 @@ const handleRegister = async () => {
 
     // 检查协议同意
     if (configStore.login.agreement_show && !isAgreeChecked.value) {
-      ElMessage.error(t('is_agree_tips'))
+      ElMessage.error(t('auth.register.is_agree_tips'))
       return
     }
 
@@ -347,8 +390,8 @@ const handleRegister = async () => {
 
     try {
       const registerApi = currentType.value === 'username' ? registerUser : registerWithMobile
-      const res = await registerApi(formData)
-      memberStore.setToken(res.data.token)
+      const data = await registerApi(formData) as any
+      memberStore.setToken(data.access_token, data.refresh_token || '')
       memberStore.logClose()
     } catch (error) {
       isLoading.value = false

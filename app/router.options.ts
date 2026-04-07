@@ -9,8 +9,8 @@ interface PluginRouteModule {
 type PluginRoutes = Record<string, PluginRouteModule>
 
 // import.meta.glob 自动加载模块路由
-const pluginRoutes: PluginRoutes = import.meta.glob('@/features/**/pages/routes.ts', { 
-  eager: true 
+const pluginRoutes: PluginRoutes = import.meta.glob('~/apps/**/pages/routes.ts', {
+  eager: true
 })
 
 // 创建可修改的路由数组副本

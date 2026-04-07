@@ -11,6 +11,7 @@
     >
       <login v-if="type === 'login' && dialogVisible" @typeChange="typeChange" />
       <register v-if="type === 'register' && dialogVisible" @typeChange="typeChange" />
+      <forget-password v-if="type === 'forget-password' && dialogVisible" @typeChange="typeChange" />
     </el-dialog>
   </div>
 </template>
@@ -18,6 +19,8 @@
 import { ref, computed, watch } from "vue";
 import login from "./login.vue";
 import register from "./register.vue";
+import forgetPassword from "./forget-password.vue";
+import { useMemberStore } from '~/stores/member';
 
 const type = ref("login");
 

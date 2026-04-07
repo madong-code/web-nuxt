@@ -5,22 +5,23 @@
     v-model="drawerVisible"
     :with-header="false"
     direction="ltr"
+    :size="'50%'"
   >
     <div class="drawer-header">
       <Logo clickable show-text size="small" />
       <div @click="closeDrawer" class="drawer-close">
-        <Icon name="el-icon-Close" color="var(--el-color-primary)" size="20" />
+        <Icon icon="ant-design:close-outlined" color="var(--el-color-primary)" size="20" />
       </div>
     </div>
     
     <!-- 移动端菜单 -->
     <div class="mobile-menu-section">
-      <Menu :show-icon="true" mode="vertical" />
+      <Menu :show-icon="true" mode="vertical" @menu-click="closeDrawer" />
     </div>
 
     <!-- 移动端-会员菜单 -->
     <div class="mobile-menu-section">
-      <HeaderActions :show-icon="true" mode="vertical" />
+      <HeaderActions :show-icon="true" mode="vertical" @menu-click="closeDrawer" />
     </div>
   </el-drawer>
 </template>
@@ -29,6 +30,7 @@
 import Menu from './menu.vue'
 import Logo from './logo.vue'
 import HeaderActions from './header-actions.vue'
+import { Icon } from '~/components/icon'
 
 interface Props {
   modelValue: boolean

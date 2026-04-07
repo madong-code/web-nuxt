@@ -1,71 +1,79 @@
-
 import { defineStore } from 'pinia'
-import {  MEMBER_KEY } from './constant/keys'
 import { getMemberProfile } from '~/api/member'
+import { navigateTo } from 'nuxt/app'
 
 
 interface Member {
     token: string | null
+    refreshToken: string | null
     info: Record<string, any> | null,
-    loginPopup:boolean
-}
-
-
-const info={
-"id": 1001,
-"username": "john_doe",
-"nickname": "John",
-"email": "john.doe@example.com",
-"mobile": "13800138000",
-"gender": 1,
-"birthday": "1990-05-15",
-"money": 1500.5,
-"score": 2500,
-"avatar": "",
-"last_login_time": "2024-05-20T14:30:00Z",
-"last_login_ip": "192.168.1.100",
-"motto": "Stay curious, keep learning",
-"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDAxIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-"refresh_token": "rt_abc123def456ghi789jkl012mno345pqr678stu901vwx234yz"
+    loginPopup: boolean
 }
 
 
 export const useMemberStore = defineStore('member', {
     state: (): Member => {
         return {
-            token: useCookie('token').value||'',
-            info: info,
-            loginPopup:false
+            token: '',
+            refreshToken: '',
+            info: null,
+            loginPopup: false
         }
     },
     actions: {
-       async setToken(token: string) {
+        async setToken(token: string, refreshToken: string) {
             this.token = token
-            useCookie('token').value = token
-            await this.getMemberInfo()
+            this.refreshToken = refreshToken
+            this.info = null
+            // 静默获取用户信息，不阻塞 token 设置
+            // 如果失败不执行 logout，保留 refreshToken 以便后续刷新
+            this.getMemberInfoSilent()
         },
         async getMemberInfo() {
-            if (!this.token) return
+            if (!this.token) {
+                return
+            }
             await getMemberProfile()
                 .then((res: any) => {
-                    this.info = res.data
+                    this.info = res || null
                 })
                 .catch((err) => {
-                    this.logout()
+                    console.error('[getMemberInfo] Error:', err)
+                    // 这里不调用 logout，保留 refreshToken 以便 token 刷新机制工作
+                    this.info = null
                 })
         },
-        logout() {
-            if (!this.token) return
-            this.token = ''
-            this.info = null
-            useCookie('token').value = null
-            // logout().then().catch()
+        async getMemberInfoSilent() {
+            // 静默获取用户信息，不抛出错误
+            if (!this.token) {
+                return
+            }
+            try {
+                const res: any = await getMemberProfile()
+                this.info = res || null
+            } catch (err) {
+                console.error('[getMemberInfoSilent] Error:', err)
+                // 不执行 logout，只清除 info
+                this.info = null
+            }
         },
-        logOpen(){
+        logout() {
+            this.token = ''
+            this.refreshToken = ''
+            this.info = null
+            this.loginPopup = false
+            // 跳转到首页
+            navigateTo('/')
+        },
+        logOpen() {
             this.loginPopup = true
         },
-        logClose(){
+        logClose() {
             this.loginPopup = false
         }
+    },
+    persist: {
+        key: 'member-store',
+        pick: ['token', 'refreshToken', 'info', 'loginPopup']
     }
 })

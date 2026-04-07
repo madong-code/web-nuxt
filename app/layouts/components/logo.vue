@@ -1,7 +1,7 @@
 <template>
   <div @click="handleClick" class="logo-container" :class="{ 'clickable': clickable, [`size-${size}`]: true }">
     <img :src="effectiveLogoUrl" :alt="altText" class="logo-image" />
-    <span v-if="showText" class="site-name">{{ siteName }}</span>
+    <span v-if="showText" class="site-name">{{ siteName }} </span>
   </div>
 </template>
 

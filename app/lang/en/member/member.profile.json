@@ -1,0 +1,27 @@
+{
+  "page_title": "Profile",
+  "username": "Username",
+  "email": "Email",
+  "email_placeholder": "Please enter email",
+  "phone": "Mobile Number",
+  "nickname": "Nickname",
+  "nickname_placeholder": "Please enter nickname",
+  "gender": "Gender",
+  "gender_male": "Male",
+  "gender_female": "Female",
+  "gender_other": "Other",
+  "birthday": "Birthday",
+  "birthday_placeholder": "Please select birthday",
+  "bio": "Bio",
+  "bio_placeholder": "Please enter bio",
+  "save_button": "Save",
+  "reset_button": "Reset",
+  "avatar": "Avatar",
+  "upload_avatar": "Upload Avatar",
+  "update_success": "Profile saved successfully",
+  "update_failed": "Save failed",
+  "validation": {
+    "nickname_required": "Please enter nickname",
+    "email_format": "Please enter correct email address"
+  }
+}

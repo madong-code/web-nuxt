@@ -63,18 +63,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { sendSmsVerificationCode } from '@/api/system'
 import type { FormInstance } from 'element-plus'
 
 interface SmsCodeProps {
-    mobile: string
+    mobile?: string
+    email?: string
     type: string
     modelValue: string
 }
 
 interface CaptchaFormData {
-    mobile: string
+    mobile?: string
+    email?: string
     captcha_code: string
     captcha_key: string
     type: string
@@ -93,10 +95,19 @@ let countdownTimer: number | undefined = undefined
 
 // 验证码相关
 const captchaForm = reactive<CaptchaFormData>({
-    mobile: '',
+    mobile: props.mobile || '',
+    email: props.email || '',
     captcha_code: '',
     captcha_key: '',
     type: props.type
+})
+
+// 监听 props 变化，更新 captchaForm
+watch(() => props.mobile, (newVal) => {
+    captchaForm.mobile = newVal || ''
+})
+watch(() => props.email, (newVal) => {
+    captchaForm.email = newVal || ''
 })
 
 const captchaImage = ref('')
@@ -126,14 +137,15 @@ buttonText.value = t('get_sms_code')
 
 // 发送短信验证码
 const sendSmsCode = async () => {
-    captchaForm.mobile = props.mobile
-    
+    captchaForm.mobile = props.mobile || ''
+    captchaForm.email = props.email || ''
+
     if (!canSendCode.value) return
 
     try {
         isLoading.value = true
         const response = await sendSmsVerificationCode(captchaForm) as any
-        
+
         if (response?.code !== -1) {
             smsValue.value = response.data.key
             startCountdown()

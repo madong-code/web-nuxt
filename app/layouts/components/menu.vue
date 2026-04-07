@@ -1,22 +1,21 @@
 <template>
     <el-menu :default-active="state.activeMenu" @select="onSelect">
-        <el-menu-item @click="handleClick('/')" v-blur index="index">
-            <Icon v-if="props.showIcon" name="fa fa-home" color="var(--el-text-color-primary)" />
-            <template #title>{{ t('主页') }}</template>
-        </el-menu-item>
-
-        <!-- 动态菜单 -->
-        <MenuSub :menus="systemStore.site.head_nav" :show-icon="showIcon" />
+        <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
     </el-menu>
 </template>
 
 <script setup lang="ts">
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import type { Menus } from '~/stores/interface'
+import { reactive, nextTick, watch } from 'vue'
+import { useRoute, navigateTo } from 'nuxt/app'
+import { useSystemStore } from '~/stores/system'
+import { useI18n } from 'vue-i18n'
 import MenuSub from './menu-sub.vue'
 
 const route = useRoute()
 const systemStore = useSystemStore()
+const { t } = useI18n()
 
 interface Props {
     showIcon?: boolean
@@ -26,14 +25,15 @@ const props = withDefaults(defineProps<Props>(), {
     showIcon: false,
 })
 
+const emit = defineEmits<{
+    'menu-click': []
+}>()
+
 const state = reactive({
     activeMenu: '',
     switchingLanguage: false,
 })
 
-/**
- * 设置激活菜单
- */
 const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {
     if (route.path == '/') return (state.activeMenu = 'index')
 
@@ -45,12 +45,8 @@ const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {
     }
 }
 
-/**
- * 菜单被点击时额外对无需激活的菜单处理（外链、暗黑模式开关、语言切换等）
- * 检查菜单是否需要激活，如果否，还原 state.activeMenu
- */
 const onSelect = (index: string) => {
-    if (noNeedActive(systemStore.site.head_nav, index)) {
+    if (noNeedActive(systemStore.headNav, index)) {
         const oldActiveMenu = state.activeMenu
         state.activeMenu = ''
         nextTick(() => {
@@ -59,11 +55,6 @@ const onSelect = (index: string) => {
     }
 }
 
-/**
- * 检查一个菜单是否需要激活态
- * @param menus
- * @param index
- */
 const noNeedActive = (menus: Menus[], index: string) => {
     if (index.indexOf('language-switch') === 0 || index == 'theme-switch') {
         return true
@@ -71,53 +62,40 @@ const noNeedActive = (menus: Menus[], index: string) => {
     return isExternalLink(menus, index)
 }
 
-/**
- * 检查一个菜单是否是外站链接，如果是，不要激活
- * @param menus
- * @param index
- */
 const isExternalLink = (menus: Menus[], index: string): boolean => {
-    // 修复：添加空值检查
     if (!menus || !Array.isArray(menus)) {
         return false
     }
     
-    for (const key in menus) {
-        // 修复：检查 menus[key] 是否存在
-        if (!menus[key]) continue
+    for (const menu of menus) {
+        if (!menu) continue
         
-        const columnIndex = `column-${menus[key].id}`
+        const columnIndex = `column-${menu.id}`
         if (columnIndex == index) {
-            return menus[key].meta?.menu_type == 'link'
+            return systemStore.isExternalLink(menu)
         }
-        // 修复：添加 children 存在性检查
-        if (menus[key].children && Array.isArray(menus[key].children) && menus[key].children.length) {
-            const result = isExternalLink(menus[key].children, index)
+        if (menu.children && Array.isArray(menu.children) && menu.children.length) {
+            const result = isExternalLink(menu.children, index)
             if (result) return true
         }
     }
     return false
 }
 
-/**
- * 递归的搜索菜单 Index
- */
 const searchMenuIndex = (menus: Menus[], route: RouteLocationNormalizedLoaded): number | false => {
-    // 修复：添加空值检查
     if (!menus || !Array.isArray(menus)) {
         return false
     }
     
     let find: boolean | number = false
-    for (const key in menus) {
-        // 修复：检查 menus[key] 是否存在
-        if (!menus[key]) continue
+    for (const menu of menus) {
+        if (!menu) continue
         
-        if (menus[key].id && menus[key].path == route.fullPath) {
-            return menus[key].id
+        if (menu.id && menu.path == route.fullPath) {
+            return menu.id
         }
-        if (menus[key].children && Array.isArray(menus[key].children) && menus[key].children.length) {
-            find = searchMenuIndex(menus[key].children, route)
+        if (menu.children && Array.isArray(menu.children) && menu.children.length) {
+            find = searchMenuIndex(menu.children, route)
             if (find !== false) return find
         }
     }
@@ -128,16 +106,12 @@ const handleClick = (path: string) => {
     navigateTo(path)
 }
 
-/**
- * 从动态菜单中-搜索一个菜单
- */
 const findMenus = (route: RouteLocationNormalizedLoaded) => {
-    // 修复：添加空值检查
-    if (!systemStore.site.head_nav || !Array.isArray(systemStore.site.head_nav)) {
+    if (!systemStore.navMenu || !Array.isArray(systemStore.navMenu)) {
         return false
     }
     
-    const headNavIndex = searchMenuIndex(systemStore.site.head_nav, route)
+    const headNavIndex = searchMenuIndex(systemStore.navMenu, route)
     if (headNavIndex !== false) return headNavIndex
 }
 
@@ -148,8 +122,6 @@ watch(
         setActiveMenu(route)
     }
 )
-
-
 </script>
 
 <style scoped lang="scss">

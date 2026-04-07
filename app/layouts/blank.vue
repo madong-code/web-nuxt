@@ -1,0 +1,230 @@
+<template>
+  <el-container class="layout-container">
+    <el-header class="layout-header">
+      <layout-header />
+    </el-header>
+    <el-scrollbar :style="calcHeight(60)" class="main-scrollbar" ref="mainScrollbarRef">
+      <div class="layout-main">
+        <div class="layout-content">
+          <slot></slot>
+        </div>
+      </div>
+    </el-scrollbar>
+  </el-container>
+</template>
+
+<script lang="ts" setup>
+import {  useTemplateRef, watch, provide } from 'vue';
+import layoutHeader from "./components/header.vue";
+
+const route = useRoute();
+const mainScrollbarRef = useTemplateRef('mainScrollbarRef');
+
+// 计算滚动区域高度
+const calcHeight = (headerHeight: number) => {
+  return {
+    height: `calc(100vh - ${headerHeight}px)`,
+    maxHeight: `calc(100vh - ${headerHeight}px)`
+  };
+};
+
+// 路由切换时滚动条滚动至顶部
+watch(
+  () => route.fullPath,
+  () => {
+    if (!route.meta.disableScrollTo) {
+      mainScrollbarRef.value?.scrollTo(0, 0);
+    }
+  }
+);
+
+// 将滚动条的 ref provide 给子级组件
+provide('mainScrollbarRef', mainScrollbarRef);
+</script>
+
+<style scoped lang="scss">
+.layout-container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  
+  .layout-header {
+    position: relative;
+    z-index: 1000;
+    background-color: var(--ma-bg-color-overlay);
+    height: 60px;
+    flex-shrink: 0;
+  }
+  
+  .main-scrollbar {
+    flex: 1;
+    overflow: hidden;
+    
+    .layout-main {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      
+      .layout-content {
+        flex: 1;
+        min-height: var(--content-min-height, 500px);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 0;
+      }
+    }
+  }
+}
+
+/* 全局重置 */
+:global(html, body) {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* 响应式断点 */
+@media screen and (max-width: 768px) {
+  .layout-container {
+    .layout-main {
+      .layout-content {
+        --content-min-height: 300px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .layout-container {
+    .layout-main {
+      .layout-content {
+        --content-min-height: 400px;
+      }
+    }
+  }
+}
+
+/* 组件样式适配 */
+.layout-header {
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  left: 0;
+  right: 0;
+  
+  :deep(.header-logo) {
+    span {
+      padding-left: 4px;
+    }
+  }
+  
+  :deep(.frontend-header-menu) {
+    background: transparent;
+    .el-menu-item,
+    .el-sub-menu .el-sub-menu__title {
+      &.is-active {
+        color: var(--el-color-primary) !important;
+      }
+      &:hover {
+        background-color: transparent !important;
+        color: var(--el-menu-hover-text-color) !important;
+      }
+    }
+  }
+}
+
+/* 页面特定样式 */
+.page-index {
+  .layout-content {
+    /* 首页特定样式 */
+  }
+}
+
+.page-member {
+  .layout-content {
+    /* 会员页面特定样式 */
+  }
+}
+
+/* 滚动条样式优化 */
+.main-scrollbar {
+  :deep(.el-scrollbar__thumb) {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  :deep(.el-scrollbar__track) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* 深色模式滚动条 */
+@at-root html.dark {
+  .main-scrollbar {
+    :deep(.el-scrollbar__thumb) {
+      background-color: rgba(255, 255, 255, 0.2);
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+    
+    :deep(.el-scrollbar__track) {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+  
+  .page-index {
+    background: url(~/assets/images/bg-dark.jpg) repeat;
+  }
+}
+
+/* 响应式适配 */
+@media screen and (max-width: 1024px) {
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          padding: 0 15px;
+          --content-min-height: 400px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          padding: 0 10px;
+          --content-min-height: 300px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-height: 650px) {
+  .layout-container {
+    .main-scrollbar {
+      .layout-main {
+        .layout-content {
+          --content-min-height: 200px;
+        }
+      }
+    }
+  }
+}
+</style>

@@ -5,7 +5,7 @@
       <Icon
         v-if="isAccountLoginActive"
         @click="toggleLoginMode"
-        name="local-qr"
+        icon="ant-design:qrcode-outlined"
         :color="isDarkMode ? '#ffffff' : '#000000'"
         size="50px"
         class="login-toggle-icon"
@@ -13,7 +13,7 @@
       <Icon
         v-else
         @click="toggleLoginMode"
-        name="local-pc"
+        icon="ant-design:desktop-outlined"
         :color="isDarkMode ? '#ffffff' : '#000000'"
         size="50px"
         class="login-toggle-icon"
@@ -50,7 +50,7 @@
             <div class="input-container">
               <el-input
                 v-model="formData.username"
-                :placeholder="t('username_placeholder')"
+                :placeholder="t('auth.login.username_placeholder')"
                 clearable
                 :inline-message="true"
                 :readonly="isUsernameInputReadonly"
@@ -60,7 +60,7 @@
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-User"
+                    icon="ant-design:user-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -73,7 +73,7 @@
             <div class="input-container">
               <el-input
                 v-model="formData.password"
-                :placeholder="t('password_placeholder')"
+                :placeholder="t('auth.login.password_placeholder')"
                 type="password"
                 clearable
                 show-password
@@ -81,7 +81,7 @@
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-Lock"
+                    icon="ant-design:lock-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -97,13 +97,13 @@
             <div class="input-container">
               <el-input
                 v-model="formData.mobile"
-                :placeholder="t('mobile_placeholder')"
+                :placeholder="t('auth.login.mobile_placeholder')"
                 clearable
                 class="login-input"
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-Phone"
+                    icon="ant-design:phone-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -116,12 +116,12 @@
             <div class="input-container">
               <el-input
                 v-model="formData.mobile_code"
-                :placeholder="t('code_placeholder')"
+                :placeholder="t('auth.login.code_placeholder')"
                 class="login-input"
               >
                 <template #prefix>
                   <Icon
-                    name="el-icon-Key"
+                    icon="ant-design:key-outlined"
                     :color="isDarkMode ? '#ffffff' : '#000000'"
                     class="input-prefix-icon"
                   />
@@ -140,10 +140,19 @@
           </el-form-item>
         </div>
 
-        <!-- 注册链接 -->
+        <!-- 注册链接和忘记密码 -->
         <div class="form-actions">
           <el-button type="primary" link @click="switchToRegister" class="register-link">
-            {{ t("no_account") }}，{{ t("to_register") }}
+            {{ t("auth.login.no_account") }}，{{ t("auth.login.to_register") }}
+          </el-button>
+          <el-button
+            v-if="currentLoginType === 'username'"
+            type="primary"
+            link
+            @click="switchToForgetPassword"
+            class="forget-password-link"
+          >
+            {{ t("auth.login.resetpwd") }}
           </el-button>
         </div>
 
@@ -156,7 +165,7 @@
             @click="handleLoginSubmit"
             :loading="isLoading"
           >
-            {{ isLoading ? t("logining") : t("login") }}
+            {{ isLoading ? t("auth.login.logining") : t("auth.login.login") }}
           </el-button>
         </div>
 
@@ -169,11 +178,11 @@
           ></span>
           {{ t("agree_tips") }}
           <NuxtLink :to="protocolUrls.serviceUrl" target="_blank">
-            <span class="agreement-link">{{ t("user_agreement") }}</span>
+            <span class="agreement-link">{{ t("auth.register.user_agreement") }}</span>
           </NuxtLink>
           {{ t("and") }}
           <NuxtLink :to="protocolUrls.privacyUrl" target="_blank">
-            <span class="agreement-link">{{ t("privacy_agreement") }}</span>
+            <span class="agreement-link">{{ t("auth.register.privacy_agreement") }}</span>
           </NuxtLink>
         </div>
       </el-form>
@@ -181,19 +190,19 @@
 
     <!-- 微信扫码登录 -->
     <div v-else class="wechat-login-container">
-      <div class="wechat-login-title">{{ t("wechat_scan_login") }}</div>
+      <div class="wechat-login-title">{{ t("auth.login.wechat_scan_login") }}</div>
       <div class="qrcode-container">
         <div class="qrcode-wrapper">
           <el-image v-if="wechatQrCode.url" :src="wechatQrCode.url" class="qrcode-image" />
           <div v-else class="qrcode-placeholder"></div>
           <div v-if="wechatQrCode.isExpired" class="qrcode-overlay">
             <span class="qrcode-error-text">{{ wechatQrCode.expiredMessage }}</span>
-            <span @click="handleGenerateWechatQrCode" class="qrcode-refresh-link">{{ t("click_refresh") }}</span>
+            <span @click="handleGenerateWechatQrCode" class="qrcode-refresh-link">{{ t("auth.login.click_refresh") }}</span>
           </div>
         </div>
         <div class="wechat-tip">
           <span class="iconfont icon-weixin1 wechat-icon"></span>
-          <span class="wechat-text">{{ t("wechat_scan_tip") }}</span>
+          <span class="wechat-text">{{ t("auth.login.wechat_scan_tip") }}</span>
         </div>
       </div>
     </div>
@@ -204,8 +213,13 @@
 import { ref, reactive, computed, onUnmounted } from "vue";
 import { authenticateUser, authenticateWithMobile, authenticateWithWechat,generateWechatQrCode, checkWechatScanStatus } from "@/api/auth";
 import useConfigStore from "@/stores/config";
+import { useMemberStore } from "@/stores/member";
 import QRCode from "qrcode";
 import type { FormInstance } from "element-plus";
+import { Icon } from '~/components/icon'
+import {t}from "~/composables/lang";
+import { ElMessage } from "element-plus";
+import validate from "~/utils/validate";
 
 // Store 实例
 const memberStore = useMemberStore();
@@ -213,7 +227,8 @@ const configStore = useConfigStore();
 
 // 暗黑模式状态
 const isDarkMode = computed(() => {
-  return configStore.isDarkMode;
+  const root = document.querySelector('html')
+  return root?.classList.contains('dark') || false
 });
 
 // 协议链接配置
@@ -259,10 +274,10 @@ const smsCodeRef = ref<AnyObject | null>(null);
 const availableLoginTypes = computed(() => {
   const types = [];
   if (configStore.login.is_username) {
-    types.push({ type: "username", title: t("username_login") });
+    types.push({ type: "username", title: t("auth.login.username_login") });
   }
   if (configStore.login.is_mobile) {
-    types.push({ type: "mobile", title: t("mobile_login") });
+    types.push({ type: "mobile", title: t("auth.login.mobile_login") });
   }
   currentLoginType.value = types[0] ? types[0].type : "";
   return types;
@@ -271,12 +286,12 @@ const availableLoginTypes = computed(() => {
 const formRules = computed(() => ({
   username: {
     required: currentLoginType.value === "username",
-    message: t("username_placeholder"),
+    message: t("auth.login.username_placeholder"),
     trigger: ["blur", "change"],
   },
   password: {
     required: currentLoginType.value === "username",
-    message: t("password_placeholder"),
+    message: t("auth.login.password_placeholder"),
     trigger: ["blur", "change"],
   },
   mobile: [
@@ -290,13 +305,13 @@ const formRules = computed(() => ({
         if (currentLoginType.value !== "mobile") return true;
         return validate.mobile(value);
       },
-      message: t("mobile_error"),
+      message: t("auth.login.mobile_error"),
       trigger: ["blur"],
     },
   ],
   mobile_code: {
     required: currentLoginType.value === "mobile",
-    message: t("code_placeholder"),
+    message: t("auth.login.sms_code_placeholder"),
     trigger: ["change"],
   },
 }));
@@ -307,28 +322,34 @@ onUnmounted(() => {
 });
 
 // 初始化配置
-configStore.getLoginConfig();
+configStore.getWebGroupConfigs();
 
 // 登录模式切换
 const toggleLoginMode = () => {
-  isAccountLoginActive.value = !isAccountLoginActive.value;
   if (!isAccountLoginActive.value) {
-    handleGenerateWechatQrCode();
-  } else {
+    isAccountLoginActive.value = !isAccountLoginActive.value;
     clearTimeout(qrCodeTimer);
+  } else {
+    // 检查是否开启微信登录
+    if (!configStore.login?.is_wechat) {
+      ElMessage.error(t('auth.login.wechat_login_not_available'));
+      return;
+    }
+    isAccountLoginActive.value = !isAccountLoginActive.value;
+    handleGenerateWechatQrCode();
   }
 };
 
 // 微信扫码登录相关方法
 const handleGenerateWechatQrCode = async () => {
   try {
-    const response = await generateWechatQrCode() as any;   
-    const data = response.data;
+    const data = await generateWechatQrCode() as any;   
+
+  
+    wechatQrCode.value.key = data.scene_id;
     
-    wechatQrCode.value.key = data.key;
-    
-    if (data.url) {
-      const qrCodeUrl = await QRCode.toDataURL(data.url, {
+    if (data.qr_code_url) {
+      const qrCodeUrl = await QRCode.toDataURL(data.qr_code_url, {
         errorCorrectionLevel: "L",
         margin: 0,
         width: 100,
@@ -351,10 +372,9 @@ const handleGenerateWechatQrCode = async () => {
  * 检查微信扫码登录状态
  * @param key - 扫码登录密钥
  */
-const checkScan = (key: string) => {
-  checkWechatScanStatus({ key })
-    .then((res: any) => {
-      const data = res.data;
+const checkScan = (scene_id: string) => {
+  checkWechatScanStatus({ scene_id })
+    .then((data: any) => {  
       switch (data.status) {
         case "wait":
           qrCodeTimer = setTimeout(() => {
@@ -377,12 +397,12 @@ const checkScan = (key: string) => {
 };
 
 const handleWechatLoginSuccess = (loginData: any) => {
-  if (!loginData.token) {
+  if (!loginData.access_token) {
     useCookie("openId").value = loginData.openid;
     navigateTo("/auth/bind");
     memberStore.logClose();
   } else {
-    memberStore.setToken(loginData.token);
+    memberStore.setToken(loginData.access_token, loginData.refresh_token || '');
     memberStore.logClose();
   }
 };
@@ -393,7 +413,7 @@ const handleLoginSubmit = async () => {
   if (!isValid) return;
 
   if (configStore.login.agreement_show && !isAgreeProtocol.value) {
-    ElMessage.error(t("is_agree_tips"));
+    ElMessage.error(t("auth.login.is_agree_tips"));
     return;
   }
 
@@ -402,9 +422,9 @@ const handleLoginSubmit = async () => {
 
   try {
     const loginMethod = currentLoginType.value === "username" ? authenticateUser : authenticateWithMobile;
-    const response = await loginMethod(formData) as any;
+    const data = await loginMethod(formData) as any;
     
-    await memberStore.setToken(response?.data?.token || "");
+    await memberStore.setToken(data?.access_token || '', data?.refresh_token || '');
     memberStore.logClose();
   } catch (error) {
     isLoading.value = false;
@@ -422,6 +442,9 @@ const handleSendSmsCode = async () => {
 const emit = defineEmits(["typeChange"]);
 const switchToRegister = () => {
   emit("typeChange", "register");
+};
+const switchToForgetPassword = () => {
+  emit("typeChange", "forget-password");
 };
 </script>
 
@@ -521,10 +544,13 @@ const switchToRegister = () => {
 .form-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  gap: 10px;
 }
 
-.register-link {
+.register-link,
+.forget-password-link {
   font-size: 12px;
 }
 

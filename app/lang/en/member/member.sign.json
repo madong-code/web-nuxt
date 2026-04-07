@@ -1,0 +1,14 @@
+{
+  "page_title": "Daily Check-in",
+  "sign_rules": "Check-in Rules",
+  "sign_button": "Check in",
+  "signed": "Already Checked in",
+  "consecutive_days": "Consecutive Check-in",
+  "days": "days",
+  "tomorrow_points": "Continue check-in tomorrow to get {points} points~",
+  "sign_success": "Check-in successful! Got {points} points",
+  "sign_failed": "Check-in failed",
+  "get_sign_status_failed": "Failed to get check-in status",
+  "get_sign_calendar_failed": "Failed to get check-in calendar",
+  "rules_content": "Check-in Rules:\n1. Daily check-in can get 1-5 points\n2. The more consecutive check-in days, the more points you get\n3. Consecutive check-in for 7 days can get extra rewards"
+}

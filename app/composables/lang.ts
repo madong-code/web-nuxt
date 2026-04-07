@@ -1,10 +1,9 @@
 import { useRoute } from 'vue-router'
-import Language from '~/utils/language'
 
 export function t(message: string) {
-    const i18n = useNuxtApp().$getI18n()
-    const route = useRoute()
-    const file = new Language(i18n).getFileKey((route?.meta.plugin || 'app'), route?.path || '')
-    const key = `${file}.${message}`
-    return i18n.global.t(key) != key ? i18n.global.t(key) : i18n.global.t(message)
+    const nuxtApp: any = useNuxtApp()
+    const i18nInstance = nuxtApp.$getI18n()
+    
+    // 直接使用 i18n 的 t 方法，让它自动根据 locale 选择对应的翻译
+    return i18nInstance.global.t(message)
 }

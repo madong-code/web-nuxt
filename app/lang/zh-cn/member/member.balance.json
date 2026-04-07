@@ -1,0 +1,16 @@
+{
+  "page_title": "余额记录",
+  "current_balance": "当前余额",
+  "total_transaction": "总交易额",
+  "record_id": "记录ID",
+  "type": "类型",
+  "type_income": "收入",
+  "type_expense": "支出",
+  "amount": "金额",
+  "description": "描述",
+  "time": "时间",
+  "loading": "加载中",
+  "no_data": "暂无数据",
+  "recharge": "充值",
+  "withdraw": "提现"
+}

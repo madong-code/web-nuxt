@@ -1,0 +1,14 @@
+{
+  "page_title": "每日签到",
+  "sign_rules": "签到规则",
+  "sign_button": "签到",
+  "signed": "已签到",
+  "consecutive_days": "连续签到",
+  "days": "天",
+  "tomorrow_points": "明天继续签到可获得 {points} 积分~",
+  "sign_success": "签到成功！获得{points}积分",
+  "sign_failed": "签到失败",
+  "get_sign_status_failed": "获取签到状态失败",
+  "get_sign_calendar_failed": "获取签到日历失败",
+  "rules_content": "签到规则：\n1. 每日签到可获得1-5积分\n2. 连续签到天数越多，获得积分越多\n3. 连续签到7天可获得额外奖励"
+}

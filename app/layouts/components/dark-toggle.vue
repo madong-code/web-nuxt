@@ -5,10 +5,12 @@
 </template>
 
 <script setup lang="ts">
-const color = useColorMode()
+import { computed } from 'vue'
+import { getDark, setDark } from '~/utils/dark'
 
+const isDark = computed(() => getDark())
 
 function toggleDark() {
-  color.preference = color.value === 'dark' ? 'light' : 'dark'
+  setDark(!isDark.value)
 }
 </script>

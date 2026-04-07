@@ -2,6 +2,8 @@ import type { FormInstance } from 'element-plus'
 import { isNull, trim } from 'lodash-es'
 import type { CSSProperties } from 'vue'
 import type { TranslateOptions } from 'vue-i18n'
+import { useMemberStore } from '~/stores/member'
+import { useConfigStore } from '~/stores/config'
 
 
 type anyObj = { [key: string]: any }
@@ -9,12 +11,49 @@ type anyObj = { [key: string]: any }
 
 /**
  * 获取token
- * @returns
+ * @param type token类型，默认为Bearer
+ * @returns 完整的token字符串
  */
-export function getToken(): null | string {
-    return useMemberStore().token
+export function getToken(type: string = 'Bearer'): null | string {
+    // 优先从 store 获取
+    let token = useMemberStore().token
+    
+    // 如果 store 中有token且不为空，直接返回
+    if (token && token.trim() !== '') {
+        return `${type} ${token}`
+    }
+    
+    // 如果 store 中没有，尝试从 cookie 获取（处理页面刷新后的情况）
+    const cookieToken = useCookie('token').value
+    if (cookieToken && cookieToken.trim() !== '') {
+        return `${type} ${cookieToken}`
+    }
+    
+    return null
 }
 
+/**
+ * 获取refresh token
+ * @param type token类型，默认为Bearer
+ * @returns 完整的refresh token字符串
+ */
+export function getRefreshToken(type: string = 'Bearer'): null | string {
+    // 优先从 store 获取
+    let refreshToken = useMemberStore().refreshToken
+    
+    // 如果 store 中有token且不为空，直接返回
+    if (refreshToken && refreshToken.trim() !== '') {
+        return `${type} ${refreshToken}`
+    }
+    
+    // 如果 store 中没有，尝试从 cookie 获取（处理页面刷新后的情况）
+    const cookieRefreshToken = useCookie('refreshToken').value
+    if (cookieRefreshToken && cookieRefreshToken.trim() !== '') {
+        return `${type} ${cookieRefreshToken}`
+    }
+    
+    return null
+}
 
 /**
  * 获取资源完整地址
@@ -34,6 +73,58 @@ export const fullUrl = (relativeUrl: string, domain = '') => {
         return relativeUrl
     }
     return domain + relativeUrl
+}
+
+/**
+ * 将Markdown内容中的绝对URL转换为相对路径
+ * @param markdown Markdown内容
+ */
+export const convertMarkdownToRelative = (markdown: string): string => {
+    if (!markdown) return markdown
+    const configStore = useConfigStore()
+    const domain = configStore?.cdn_url || import.meta.env.VITE_API_BASE_URL || window.location.origin
+
+    return markdown.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+        // 跳过 base64 图片和相对路径
+        if (url.startsWith('data:') || !url.startsWith('http://') && !url.startsWith('https://')) {
+            return match
+        }
+        // 将绝对URL转换为相对路径
+        try {
+            const urlObj = new URL(url)
+            const pathname = urlObj.pathname
+            return `![${alt}](${pathname})`
+        } catch {
+            return match
+        }
+    })
+}
+
+/**
+ * 将Markdown内容中的相对路径转换为绝对URL
+ * @param markdown Markdown内容
+ */
+export const convertMarkdownToFull = (markdown: string): string => {
+    if (!markdown) return markdown
+    const configStore = useConfigStore()
+    const domain = configStore?.cdn_url || import.meta.env.VITE_API_BASE_URL || window.location.origin
+
+    return markdown.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+        // 跳过 base64 图片和外部URL（OSS/CDN）
+        if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+            return match
+        }
+        // 如果是相对路径，转换为绝对URL
+        const fullUrl = url.startsWith('/') ? `${domain}${url}` : `${domain}/${url}`
+        return `![${alt}](${fullUrl})`
+    })
+}
+
+/**
+ * 判断是否为外部URL（OSS/CDN等）
+ */
+export const isExternalUrl = (url: string): boolean => {
+    return /^https?:\/\//.test(url) || /^data:image\//.test(url)
 }
 
 /**
@@ -133,28 +224,14 @@ export function auth(node: string): boolean
 export function auth(node: { name: string; subNodeName?: string }): boolean
 
 /**
- * 鉴权
- * 提供 string 将根据当前路由 path 自动拼接和鉴权，还可以提供路由的 name 对象进行鉴权
- * @param node
+ * 权限检查函数
+ * @param node 权限节点，可以是字符串或对象
+ * @returns 是否有权限
  */
-export function auth(node: string | { name: string; subNodeName?: string }) {
-    const store = usePersonalCenterStore()
-    if (typeof node === 'string') {
-        const path = getCurrentRoutePath()
-        if (store.state.authNode.has(path)) {
-            const subNodeName = path + (path == '/' ? '' : '/') + node
-            if (store.state.authNode.get(path)!.some((v: string) => v == subNodeName)) {
-                return true
-            }
-        }
-    } else {
-        // 节点列表中没有找到 name
-        if (!node.name || !store.state.authNode.has(node.name)) return false
-
-        // 无需继续检查子节点或未找到子节点
-        if (!node.subNodeName || store.state.authNode.get(node.name)?.includes(node.subNodeName)) return true
-    }
-    return false
+export function auth(node: string | { name: string; subNodeName?: string }): boolean {
+    // TODO: 实现权限检查逻辑
+    // 目前先返回 true，表示所有用户都有权限
+    return true
 }
 
 /*
@@ -168,11 +245,22 @@ export const timeFormat = (dateTime: string | number | null = null, fmt = 'yyyy-
     if (isNull(dateTime)) {
         dateTime = Number(new Date())
     }
-    if (dateTime.toString().length === 10) {
-        dateTime = +dateTime * 1000
+
+    let date: Date
+
+    if (typeof dateTime === 'string') {
+        date = new Date(dateTime)
+    } else {
+        if (dateTime.toString().length === 10) {
+            dateTime = +dateTime * 1000
+        }
+        date = new Date(Number(dateTime))
     }
 
-    const date = new Date(Number(dateTime))
+    if (isNaN(date.getTime())) {
+        return ''
+    }
+
     let ret
     const opt: anyObj = {
         'y+': date.getFullYear().toString(), // 年

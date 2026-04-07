@@ -21,13 +21,14 @@ export default defineConfig({
       scale: 1.2,
     }),
     presetTypography(),
-    presetWebFonts({
-      fonts: {
-        sans: 'DM Sans',
-        serif: 'DM Serif Display',
-        mono: 'DM Mono',
-      },
-    }),
+    // 禁用web fonts自动加载，避免网络超时问题
+    // presetWebFonts({
+    //   fonts: {
+    //     sans: 'DM Sans',
+    //     serif: 'DM Serif Display',
+    //     mono: 'DM Mono',
+    //   },
+    // }),
   ],
   transformers: [
     transformerDirectives(),

@@ -1,0 +1,27 @@
+{
+  "page_title": "个人资料",
+  "username": "用户名",
+  "email": "邮箱",
+  "email_placeholder": "请输入邮箱",
+  "phone": "手机号",
+  "nickname": "昵称",
+  "nickname_placeholder": "请输入昵称",
+  "gender": "性别",
+  "gender_male": "男",
+  "gender_female": "女",
+  "gender_other": "其他",
+  "birthday": "生日",
+  "birthday_placeholder": "请选择生日",
+  "bio": "个人简介",
+  "bio_placeholder": "请输入个人简介",
+  "save_button": "保存修改",
+  "reset_button": "重置",
+  "avatar": "头像",
+  "upload_avatar": "上传头像",
+  "update_success": "个人资料保存成功",
+  "update_failed": "保存失败",
+  "validation": {
+    "nickname_required": "请输入昵称",
+    "email_format": "请输入正确的邮箱地址"
+  }
+}

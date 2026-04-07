@@ -1,0 +1,15 @@
+{
+  "page_title": "积分记录",
+  "current_points": "当前积分",
+  "monthly_points": "本月获得",
+  "total_points": "总获得",
+  "record_id": "记录ID",
+  "type": "类型",
+  "type_earn": "获得",
+  "type_deduct": "扣除",
+  "points": "积分",
+  "reason": "原因",
+  "time": "时间",
+  "loading": "加载中",
+  "no_data": "暂无数据"
+}
