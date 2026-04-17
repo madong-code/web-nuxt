@@ -154,8 +154,8 @@ export const useSystemStore = defineStore('system', {
         // 根据 category 字段分类菜单
         // category = 1: 导航菜单 (NAV)
         // category = 2: 会员菜单 (MEMBER)
-        const navMenuItems = allMenus.filter((menu: any) => menu.category === 1) || []
-        const memberMenuItems = allMenus.filter((menu: any) => menu.category === 2) || []
+        const navMenuItems = allMenus.filter((menu: any) => String(menu.category) === '1') || []
+        const memberMenuItems = allMenus.filter((menu: any) => String(menu.category) === '2') || []
 
         // 构建层级菜单树
         const navMenu = this.buildMenuTree(navMenuItems)
@@ -211,6 +211,7 @@ export const useSystemStore = defineStore('system', {
             permissions: item.meta?.permissions || item.code || [],
             ...(item.meta || {})
           },
+          extra: item.extra || {},
           children: []
         }
         // 统一 ID 类型为字符串，避免类型不匹配问题
@@ -278,6 +279,67 @@ export const useSystemStore = defineStore('system', {
       }
 
       return processedMenu
+    },
+
+    /**
+     * 追加菜单到导航菜单
+     * @param menu 菜单项
+     * @param index 插入位置：正数从前面（0开始），负数从后面（-1最后，-2倒数第二），不传默认最后
+     * @param checkExists 是否检查已存在（默认true）
+     */
+    appendNavMenu(menu: Menus, index?: number, checkExists: boolean = true) {
+      if (!this.site.nav_menu) {
+        this.site.nav_menu = []
+      }
+      // 检查是否已存在
+      if (checkExists) {
+        const exists = this.site.nav_menu.some((m: Menus) => m.path === menu.path || m.id === menu.id)
+        if (exists) return false
+      }
+
+      // 处理插入位置
+      if (index === undefined) {
+        // 默认追加到最后
+        this.site.nav_menu.push(menu)
+      } else if (index >= 0) {
+        // 正数：从前面插入到指定位置
+        const insertIndex = Math.min(index, this.site.nav_menu.length)
+        this.site.nav_menu.splice(insertIndex, 0, menu)
+      } else {
+        // 负数：从后面倒数插入
+        // -1 表示最后（等同于 push），-2 表示倒数第二
+        const insertIndex = Math.max(this.site.nav_menu.length + index + 1, 0)
+        this.site.nav_menu.splice(insertIndex, 0, menu)
+      }
+      return true
+    },
+
+    /**
+     * 更新导航菜单项
+     * @param path 菜单路径
+     * @param updates 更新的属性
+     */
+    updateNavMenuItem(path: string, updates: Partial<Menus>) {
+      const menu = this.site.nav_menu?.find((m: Menus) => m.path === path)
+      if (menu) {
+        Object.assign(menu, updates)
+        return true
+      }
+      return false
+    },
+
+    /**
+     * 移除导航菜单项
+     * @param path 菜单路径
+     */
+    removeNavMenu(path: string) {
+      if (!this.site.nav_menu) return false
+      const index = this.site.nav_menu.findIndex((m: Menus) => m.path === path)
+      if (index > -1) {
+        this.site.nav_menu.splice(index, 1)
+        return true
+      }
+      return false
     },
 
     /**

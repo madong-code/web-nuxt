@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getWebGroupConfigs } from '~/api/site'
+import { getConfigByCode } from '~/api/site'
 import { navigateTo } from 'nuxt/app'
 
 /**
@@ -112,7 +112,7 @@ export const useConfigStore = defineStore('config', {
                 agreement_show: 0     // 默认不显示用户协议
             },
             language: {
-                is_enabled: 1,        // 默认启用多语言支持
+                is_enabled: 0,        // 默认不启用多语言支持
                 default_lang: 'zh-cn', // 默认语言为中文
                 available_langs: ['zh-cn', 'en'] // 可用语言
             },
@@ -142,7 +142,7 @@ export const useConfigStore = defineStore('config', {
 
                 // SEO配置默认值
                 seo_title: 'madong',               // 默认SEO标题
-                seo_keywords: ['madong', 'madong-admin', 'madong工作流'], // 默认SEO关键词数组
+                seo_keywords: ['madong', 'madong官网','madong极速开发框架','madong快速开发框架','madong-admin', 'madong工作流','madong后台管理系统','madong开源','码动','码动开源'], // 默认SEO关键词数组
                 seo_description: 'madong通用快速开发框架是一个基于Vue3 + TypeScript + ElementPlus的快速开发框架，提供了一个完整的后台管理系统模板', // 默认SEO描述
                 site_name: 'madong',                // 默认站点名称
                 site_url: '',                         // 默认站点URL（留空自动获取）
@@ -153,60 +153,80 @@ export const useConfigStore = defineStore('config', {
     actions: {
         /**
          * 获取 Web 分组配置
-         * @description 一次性获取所有 Web 分组配置（站点设置、搜索、统计分析、登录配置等）
+         * @description 并行获取所有 Web 分组配置（站点设置、搜索、统计分析、登录配置等）
          * @param router - 可选的路由器实例，用于页面跳转控制
          */
         async getWebGroupConfigs(router?: any) {
             try {
-                const response = await getWebGroupConfigs()
-                const data = response?.data || response || {}
+                // 并行获取所有配置
+                const [
+                    loginConfigRes,
+                    siteSettingRes,
+                    searchConfigRes,
+                    analyticsConfigRes,
+                    paymentConfigRes
+                ] = await Promise.all([
+                    getConfigByCode('web_login_config'),
+                    getConfigByCode('web_site_setting'),
+                    getConfigByCode('web_search_config'),
+                    getConfigByCode('web_analytics_config'),
+                    getConfigByCode('web_payment_config')
+                ])
 
                 // 更新登录配置
-                if (data.web_login_config && !Array.isArray(data.web_login_config)) {
-                    this.login.is_username = parseInt(data.web_login_config.is_username)
-                    this.login.is_mobile = parseInt(data.web_login_config.is_mobile)
-                    this.login.is_auth_register = parseInt(data.web_login_config.is_auth_register)
-                    this.login.is_bind_mobile = parseInt(data.web_login_config.is_bind_mobile)
-                    this.login.is_wechat_scan = parseInt(data.web_login_config.is_wechat_scan)
-                    this.login.agreement_show = parseInt(data.web_login_config.agreement_show)
+                const loginConfig = loginConfigRes?.data || loginConfigRes || {}
+                if (loginConfig && !Array.isArray(loginConfig)) {
+                    this.login.is_username = parseInt(loginConfig.is_username)
+                    this.login.is_mobile = parseInt(loginConfig.is_mobile)
+                    this.login.is_auth_register = parseInt(loginConfig.is_auth_register)
+                    this.login.is_bind_mobile = parseInt(loginConfig.is_bind_mobile)
+                    this.login.is_wechat_scan = parseInt(loginConfig.is_wechat_scan)
+                    this.login.agreement_show = parseInt(loginConfig.agreement_show)
 
                     // 如果当前在关闭页面且有配置数据，自动跳转到首页
-                    if(data.web_login_config && router && router.currentRoute.value.path === '/site/close'){
+                    if (router && router.currentRoute.value.path === '/site/close') {
                         navigateTo('/', { replace: true })
                     }
                 }
 
                 // 更新站点设置
-                if (data.web_site_setting && !Array.isArray(data.web_site_setting)) {
-                    this.siteSetting.copyright = data.web_site_setting.copyright || ''
-                    this.siteSetting.icp = data.web_site_setting.icp || ''
-                    this.siteSetting.icp_url = data.web_site_setting.icp_url || 'https://beian.miit.gov.cn/'
-                    this.siteSetting.network_security = data.web_site_setting.network_security || ''
-                    this.siteSetting.network_security_url = data.web_site_setting.network_security_url || ''
-                    
+                const siteSetting = siteSettingRes?.data || siteSettingRes || {}
+                if (siteSetting && !Array.isArray(siteSetting)) {
+                    this.siteSetting.copyright = siteSetting.copyright || ''
+                    this.siteSetting.icp = siteSetting.icp || ''
+                    this.siteSetting.icp_url = siteSetting.icp_url || 'https://beian.miit.gov.cn/'
+                    this.siteSetting.network_security = siteSetting.network_security || ''
+                    this.siteSetting.network_security_url = siteSetting.network_security_url || ''
+
                     // 更新SEO配置（支持数组形式）
-                    this.siteSetting.seo_title = data.web_site_setting.seo_title || 'madong 通用快速框架'
-                    this.siteSetting.seo_keywords = data.web_site_setting.seo_keywords || ['madong', 'madong-admin', 'ingenious','工作流引擎']
-                    this.siteSetting.seo_description = data.web_site_setting.seo_description || '专业开源服务平台'
-                    this.siteSetting.site_name = data.web_site_setting.site_name || 'madong'
-                    this.siteSetting.site_url = data.web_site_setting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.share_image = data.web_site_setting.share_image || '/images/share-default.png'
+                    this.siteSetting.seo_title = siteSetting.seo_title || 'madong 通用快速框架'
+                    this.siteSetting.seo_keywords = siteSetting.seo_keywords || ['madong', 'madong-admin', 'ingenious', '工作流引擎']
+                    this.siteSetting.seo_description = siteSetting.seo_description || '专业开源服务平台'
+                    this.siteSetting.site_name = siteSetting.site_name || 'madong'
+                    this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
+                    this.siteSetting.share_image = siteSetting.share_image || '/images/share-default.png'
                 }
 
-                // 更新搜索配置 
-                if (data.web_search_config && !Array.isArray(data.web_search_config)) {
-                    this.search.keyword = data.web_search_config.keyword || ''
-                    this.search.keyword_enabled = parseInt(data.web_search_config.keyword_enabled)
+                // 更新搜索配置
+                const searchConfig = searchConfigRes?.data || searchConfigRes || {}
+                if (searchConfig && !Array.isArray(searchConfig)) {
+                    this.search.keyword = searchConfig.keyword || ''
+                    this.search.keyword_enabled = parseInt(searchConfig.keyword_enabled)
                 }
 
                 // 更新统计分析配置
-                if (data.web_analytics_config && !Array.isArray(data.web_analytics_config)) {
-                    this.analytics.baidu_tongji_code = data.web_analytics_config.baidu_tongji_code || ''
-                    this.analytics.baidu_tongji_enabled = parseInt(data.web_analytics_config.baidu_tongji_enabled)
+                const analyticsConfig = analyticsConfigRes?.data || analyticsConfigRes || {}
+                if (analyticsConfig && !Array.isArray(analyticsConfig)) {
+                    this.analytics.baidu_tongji_code = analyticsConfig.baidu_tongji_code || ''
+                    this.analytics.baidu_tongji_enabled = parseInt(analyticsConfig.baidu_tongji_enabled)
                 }
 
-                // 可继续添加其他配置的处理
-                // 如有新的 web 分组配置，在此添加
+                // 更新支付配置
+                const paymentConfig = paymentConfigRes?.data || paymentConfigRes || {}
+                if (paymentConfig && !Array.isArray(paymentConfig)) {
+                    this.payment.is_wechat_enabled = parseInt(paymentConfig.is_wechat_enabled)
+                    this.payment.is_alipay_enabled = parseInt(paymentConfig.is_alipay_enabled)
+                }
             } catch (error) {
                 console.error('获取 Web 分组配置失败:', error)
             }

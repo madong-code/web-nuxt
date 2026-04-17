@@ -41,7 +41,8 @@ export interface Menus {
     title: string
     url?: string
     icon?: string
-    meta: MenuMeta
+    meta?: MenuMeta
+    extra?: Record<string, any>
     children?: Menus[]
     sort?: number
     belong?: string

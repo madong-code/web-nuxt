@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   },
 
   app: {
-    baseURL: '/web',
+    baseURL: '/',
     head: {
       htmlAttrs: {
         lang: 'zh-cn'
@@ -95,5 +95,5 @@ export default defineNuxtConfig({
     importStyle: 'scss',
     themes: ['dark'],
   },
-  ssr: true,
+  ssr: false,
 })
