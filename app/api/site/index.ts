@@ -44,4 +44,12 @@ export function getWebGroupConfigs(): Promise<Record<string, any>> {
     return request.get('/system/config/group/web')
 }
 
+/**
+ * 根据配置编码获取单一配置
+ * @param code 配置编码，如 web_site_setting, web_payment_config 等
+ */
+export function getConfigByCode(code: string): Promise<Record<string, any>> {
+    return request.get(`/system/config/code/${code}`)
+}
+
 

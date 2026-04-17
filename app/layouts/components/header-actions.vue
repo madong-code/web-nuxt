@@ -106,7 +106,6 @@ import { useConfigStore } from "~/stores/config";
 import { t } from "~/composables/lang";
 import { getDark, setDark } from "~/utils/dark";
 
-
 const memberStore = useMemberStore();
 const systemStore = useSystemStore();
 const configStore = useConfigStore();
@@ -183,7 +182,7 @@ const handleLogin = () => {
 
 const handleLoginClick = () => {
   handleLogin();
-  $emit('menu-click');
+  emit('menu-click');
 };
 
 /**

@@ -81,7 +81,7 @@ provide('mainScrollbarRef', mainScrollbarRef);
         flex-direction: column;
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden;
+        overflow-x: visible;
         padding: 0;
       }
       
@@ -100,7 +100,6 @@ provide('mainScrollbarRef', mainScrollbarRef);
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden;
 }
 
 /* 响应式断点 */

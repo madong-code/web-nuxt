@@ -4,3 +4,4 @@ dist
 .output
 .nuxt
 .vercel
+app/apps/*

@@ -1,6 +1,6 @@
 <template>
     <el-menu :default-active="state.activeMenu" @select="onSelect">
-        <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
+        <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
     </el-menu>
 </template>
 
@@ -32,6 +32,13 @@ const emit = defineEmits<{
 const state = reactive({
     activeMenu: '',
     switchingLanguage: false,
+})
+
+// 调试用：检查 navMenu 中是否有消息中心
+const navMenuKey = computed(() => {
+    const hasNotify = systemStore.navMenu?.some((m: Menus) => m.name === '消息中心' || m.path === '/notify')
+    console.log('[Menu] navMenu has 消息中心:', hasNotify, 'menus:', systemStore.navMenu?.map((m: Menus) => m.name))
+    return hasNotify ? 'with-notify' : 'no-notify'
 })
 
 const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {

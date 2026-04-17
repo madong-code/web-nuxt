@@ -1,5 +1,5 @@
 <template>
-<div class="ma-header">
+<div class="ma-header" :class="{ 'is-scrolled': isScrolled }">
     <div class="header-container">
         <!-- 左侧logo -->
         <div class="header-left">
@@ -51,22 +51,51 @@ import MobileDrawer from './mobile-drawer.vue'
 import HeaderActions from './header-actions.vue'
 import { Icon } from '~/components/icon'
 import { useSystemStore } from '~/stores/system'
+import { inject, ref, nextTick, onMounted, onUnmounted } from 'vue'
+
+// 注入父级提供的 scrollbar ref
+const mainScrollbarRef = inject('mainScrollbarRef', ref(null))
 
 
 // 判断是否为移动端
 const isMobile = ref(false)
+const isScrolled = ref(false)
 const systemStore = useSystemStore()
+
 const checkMobile = () => {
     isMobile.value = window.innerWidth <= 768
 }
 
+const handleScroll = () => {
+    const scrollbar = mainScrollbarRef.value as any
+    if (scrollbar) {
+        const wrap = scrollbar.wrapRef || scrollbar.$el?.querySelector?.('.el-scrollbar__wrap')
+        if (wrap) {
+            isScrolled.value = wrap.scrollTop > 0
+        }
+    }
+}
+
 onMounted(() => {
     checkMobile()
+    nextTick(() => {
+        handleScroll()
+        const scrollbar = mainScrollbarRef.value as any
+        const wrap = scrollbar?.wrapRef || scrollbar?.$el?.querySelector?.('.el-scrollbar__wrap')
+        if (wrap) {
+            wrap.addEventListener('scroll', handleScroll)
+        }
+    })
     window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
     window.removeEventListener('resize', checkMobile)
+    const scrollbar = mainScrollbarRef.value as any
+    const wrap = scrollbar?.wrapRef || scrollbar?.$el?.querySelector?.('.el-scrollbar__wrap')
+    if (wrap) {
+        wrap.removeEventListener('scroll', handleScroll)
+    }
 })
 
 const handleLanguageChange = (languageName: string) => {
@@ -87,11 +116,26 @@ const toggleDarkMode = () => {
 <style scoped lang="scss">
 .ma-header {
     background-color: var(--ma-bg-color-overlay);
-    /* 暂时注释掉阴影，避免左右两边出现阴影线条 */
-    /* box-shadow: 0 2px 4px rgba(0 0 0 / 8%); */
     position: relative;
     z-index: 1000;
     width: 100%;
+
+    // 使用伪元素实现底部边框线，横跨整个视口宽度
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        height: 1px;
+        background-color: transparent;
+        transition: background-color 0.3s ease;
+    }
+
+    &.is-scrolled::after {
+        background-color: var(--el-border-color-light);
+    }
 }
 
 .header-container {
