@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   },
 
   app: {
-    baseURL: '/',
+    baseURL: '/web',
     head: {
       htmlAttrs: {
         lang: 'zh-cn'
