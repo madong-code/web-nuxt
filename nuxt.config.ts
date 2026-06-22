@@ -2,6 +2,9 @@
 import path from 'path'
 
 export default defineNuxtConfig({
+  // 启用 src/ 目录布局（Nuxt 4 推荐）
+  srcDir: 'src',
+
   modules: [
     '@nuxt/eslint',
     '@vueuse/nuxt',
@@ -22,7 +25,18 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'zh-cn'
       }
-    }
+    },
+  },
+
+  // 运行时配置（对应 .env / .env.development / .env.production）
+  runtimeConfig: {
+    public: {
+      API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
+      REQUEST_HEADER_CHANNEL_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_CHANNEL_KEY || 'pc',
+      REQUEST_HEADER_TOKEN_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_TOKEN_KEY || 'Authorization',
+      DEFAULT_LANG: process.env.NUXT_PUBLIC_DEFAULT_LANG || 'zh-CN',
+      X_TENANT_ID: process.env.NUXT_PUBLIC_X_TENANT_ID || '',
+    },
   },
 
   // css
@@ -74,12 +88,12 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         "/api": {
-          target: "http://127.0.0.1:8001",
+          target: "http://127.0.0.1:8500",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "/api"),
         },
         "/upload": {
-          target: "http://127.0.0.1:8001",
+          target: "http://127.0.0.1:8500",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/upload/, "/upload"),
         },
