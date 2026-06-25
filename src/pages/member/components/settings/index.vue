@@ -185,7 +185,7 @@ import {
   generateBindQrCode,
   checkBindQrStatus,
 } from "~/api/auth";
-import { getVerificationCode, updateMemberMobile, updateMemberEmail } from "~/api/member";
+import { sendVerificationCode, updateMemberMobile, updateMemberEmail } from "~/api/member";
 import { useMemberStore } from "~/stores/member";
 
 const router = useRouter();
@@ -372,7 +372,7 @@ const sendSmsCode = async (type: string) => {
       };
     }
 
-    await getVerificationCode(data);
+    await sendVerificationCode(data);
     ElMessage.success(t('member.settings.code_send_success'));
 
     // 开始倒计时
