@@ -1,12 +1,25 @@
 <template>
-    <div v-for="(item, idx) in props.menus" :key="idx">
-        <el-sub-menu v-if="systemStore.hasChildren(item) && checkMenuShow(item)" :index="`column-${item.id}`">
+    <template v-for="(item, idx) in props.menus" :key="idx">
+        <!-- 有 children → el-sub-menu -->
+        <el-sub-menu
+            v-if="systemStore.hasChildren(item) && checkMenuShow(item)"
+            :index="`column-${item.id}`"
+            :teleported="teleported"
+            :popper-class="popperClass"
+        >
             <template #title>
                 <Icon v-if="showIcon && item.icon" :icon="item.icon" color="var(--el-text-color-primary)" />
                 {{ item.title }}
             </template>
-            <MenuSub :menus="item.children" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
+            <MenuSub
+                :menus="item.children || []"
+                :show-icon="showIcon"
+                :teleported="teleported"
+                @menu-click="$emit('menu-click')"
+            />
         </el-sub-menu>
+
+        <!-- 无 children 的普通菜单项 -->
         <el-menu-item
             v-else-if="checkMenuShow(item)"
             @click="onClickMenu(item)"
@@ -37,24 +50,34 @@
                 ></span>
             </template>
         </el-menu-item>
-    </div>
+    </template>
 </template>
 
 <script setup lang="ts">
 import type { Menus } from '~/stores/interface'
 import { navigateTo } from 'nuxt/app'
 import { useSystemStore } from '~/stores/system'
+import { useMemberStore } from '~/stores/member'
 import { Icon } from '~/components/icon'
 import { onMounted, onUnmounted } from 'vue'
 
 interface Props {
     menus: Menus[]
     showIcon?: boolean
+    /**
+     * 是否将子菜单的弹出层 teleport 到 body
+     * 默认 true，保持兼容已有行为
+     */
+    teleported?: boolean
+    /** 子菜单弹出层的自定义 class */
+    popperClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
     menus: () => [],
     showIcon: false,
+    teleported: true,
+    popperClass: '',
 })
 
 const emit = defineEmits<{
@@ -62,6 +85,7 @@ const emit = defineEmits<{
 }>()
 
 const systemStore = useSystemStore()
+const memberStore = useMemberStore()
 
 // 组件挂载后，如果有可操控菜单，触发事件通知外部
 onMounted(() => {
@@ -75,13 +99,22 @@ const checkMenuShow = (menu: Menus): boolean => {
     if (!menu) {
         return false
     }
-    
-    const permissions = menu.meta?.permissions
-    
-    if (!permissions || permissions.length === 0) {
+
+    // 公开菜单（is_public 默认 true）→ 始终显示
+    const isPublic = menu.meta?.is_public !== false
+        && menu.meta?.is_public !== 0
+        && menu.meta?.is_public !== '0'
+
+    if (isPublic) {
         return true
     }
-    
+
+    // 非公开菜单 → 必须登录才显示
+    if (!memberStore.info) {
+        return false
+    }
+
+    // 已登录 → 使用统一的权限检查（包含 code + permissions）
     return systemStore.checkMenuPermission(menu)
 }
 
@@ -228,7 +261,7 @@ const onClickMenu = (menu: Menus) => {
 }
 
 // 可操控菜单特殊样式（如通知菜单）
-:deep(.menu-controllable) {
+::deep(.menu-controllable) {
     position: relative;
 
     .menu-badge,
@@ -248,7 +281,7 @@ const onClickMenu = (menu: Menus) => {
 }
 
 // 有徽章的菜单项高亮
-:deep(.has-badge) {
+::deep(.has-badge) {
     .menu-title {
         font-weight: 500;
     }

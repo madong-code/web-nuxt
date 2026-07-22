@@ -125,3 +125,27 @@ body,
     z-index: 9999990;
 }
 /* 全局遮罩-e */
+
+/* 暗黑模式圆形揭示过渡-s */
+/* 关闭 root 默认的交叉淡入，交由 JS 的 clip-path 动画独占过渡 */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+/* 新主题快照置于顶层，随 clip-path 圆形铺开 */
+::view-transition-new(root) {
+    z-index: 1;
+}
+::view-transition-old(root) {
+    z-index: 0;
+}
+/* 尊重系统「减少动态效果」偏好，跳过扩散动画 */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(root),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}
+/* 暗黑模式圆形揭示过渡-e */

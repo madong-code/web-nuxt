@@ -38,11 +38,7 @@ export const onClickMenu = (menu: RouteRecordRaw) => {
             break
 
         default:
-            alert('菜单类型未识别')
-            // ElNotification({
-            //     message: $t('utils.Navigation failed, the menu type is unrecognized!'),
-            //     type: 'error',
-            // })
+            console.warn('菜单类型未识别:', (menu as any).path)
             break
     }
 }
@@ -69,23 +65,6 @@ const assembleAuthNode = (routes: any, authNode: Map<string, string[]>, prefix =
     if (authNodeTemp && authNodeTemp.length > 0) {
         authNode.set(parent, authNodeTemp)
     }
-}
-
-export const registerMenus = (rules: any, menus: any) => {
-    const systemConfig = useSystemStore()
-    // if (rules.length) {
-    //     personalCenter.mergeAuthNode(handleAuthNode(rules, '/'))
-    //     systemConfig.setHeadNav(handleMenus(rules, '/', ['nav']))
-    //     personalCenter.mergeNavUserMenus(handleMenus(rules, '/', ['nav_user_menu']))
-    // }
-    // if (menus.length) {
-    //     const menupersonalCenterBaseRoute = '/user/'
-    //     personalCenter.mergeAuthNode(handleAuthNode(menus, menupersonalCenterBaseRoute))
-
-    //     personalCenter.mergeNavUserMenus(handleMenus(menus, '/', ['nav_user_menu']))
-    //     personalCenter.setShowHeadline(menus.length > 1)
-    //     personalCenter.setUserMenus(handleMenus(menus, menupersonalCenterBaseRoute, ['menu', 'menu_dir']))
-    // }
 }
 
 export const handleMenus = (rules: any, prefix = '/', type = ['nav']) => {

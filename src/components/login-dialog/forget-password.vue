@@ -185,7 +185,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { forgetPassword, verifyEmail, sendEmailCode } from '@/api/auth'
+import { forgetPassword, verifyEmail, sendEmailCode } from '~/api/auth'
 import type { FormInstance } from 'element-plus'
 import { Icon } from '~/components/icon'
 import { t } from '~/composables/lang'

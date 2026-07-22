@@ -5,12 +5,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { getDark, setDark } from '~/utils/dark'
+import { toggleDarkWithTransition } from '~/utils/dark'
 
-const isDark = computed(() => getDark())
-
-function toggleDark() {
-  setDark(!isDark.value)
+function toggleDark(e: MouseEvent) {
+  toggleDarkWithTransition(e)
 }
 </script>

@@ -2,3 +2,5 @@
 @forward 'dark';
 @forward 'element';
 @forward 'var';
+// 注：portal 插件的暗黑覆盖层已随插件自包含，
+//     由 src/plugin/portal/pages/routes.ts 引入，无需在此集中引入。

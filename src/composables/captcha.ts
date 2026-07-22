@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getCaptchaImage } from '@/api/system'
+import { getCaptchaImage } from '~/api/system'
 
 interface CaptchaFormData {
     captcha_code: string

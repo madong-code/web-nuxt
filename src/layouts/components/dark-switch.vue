@@ -1,89 +1,78 @@
 <template>
-    <div class="theme-toggle-content" @click="toggleDark">
-        <div class="switch">
-            <div class="switch-action">
-                <Icon icon="ant-design:moon-outlined" color="#ffffff" size="13px" class="switch-icon dark-icon" />
-                <Icon icon="ant-design:sun-outlined" color="#303133" size="13px" class="switch-icon light-icon" />
-            </div>
-        </div>
-    </div>
+    <button
+        class="theme-toggle-btn"
+        type="button"
+        :title="isDark ? '切换到亮色模式' : '切换到暗黑模式'"
+        :aria-label="isDark ? '切换到亮色模式' : '切换到暗黑模式'"
+        @click="toggleDark"
+    >
+        <span class="icon-wrap">
+            <Icon icon="ant-design:sun-outlined" class="toggle-icon sun-icon" />
+            <Icon icon="ant-design:moon-outlined" class="toggle-icon moon-icon" />
+        </span>
+    </button>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { Icon } from '~/components/icon'
-import { getDark, setDark } from '~/utils/dark'
+import { getDark, toggleDarkWithTransition } from '~/utils/dark'
 
 const isDark = computed(() => getDark())
 
-function toggleDark() {
-  setDark(!isDark.value)
+function toggleDark(e: MouseEvent) {
+  toggleDarkWithTransition(e)
 }
-
 </script>
 
 <style scoped lang="scss">
-.theme-toggle-content {
-    display: flex;
-    align-items: center;
-    height: 24px;
-    padding: 0 12px;
-}
-.switch {
-    display: inline-block;
-    position: relative;
-    width: 40px;
-    height: 20px;
-    border: 1px solid var(--el-border-color);
-    border-radius: 10px;
-    box-sizing: border-box;
-    background-color: var(--ma-bg-color);
-    cursor: pointer;
-    transition:
-        border-color 0.3s,
-        background-color 0.5s;
-}
-.switch-action {
-    width: 16px;
-    height: 16px;
-    display: flex;
+.theme-toggle-btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    border-radius: 50%;
-    background-color: #ffffff;
-    transform: translate(0);
-    color: var(--el-text-color-primary);
-    transition: all 0.3s;
-}
-.switch-icon {
-    position: absolute;
-    left: 1px;
-    transition: all 0.3s;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--el-text-color-regular);
     cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+        background-color: var(--el-fill-color-light);
+    }
 }
-.light-icon {
+.icon-wrap {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+}
+.toggle-icon {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transition: transform 0.52s ease, opacity 0.4s ease;
+}
+/* 亮色模式：显示太阳 */
+.sun-icon {
     opacity: 1;
+    transform: rotate(0deg) scale(1);
 }
-.dark-icon {
+.moon-icon {
     opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
 }
-
+/* 暗黑模式：显示月亮 */
 @at-root html.dark {
-    .switch {
-        background-color: #2c2c2c;
-    }
-    .switch-action {
-        transform: translate(20px);
-        background-color: #141414;
-    }
-    .dark-icon {
-        opacity: 1;
-    }
-    .light-icon {
+    .sun-icon {
         opacity: 0;
+        transform: rotate(90deg) scale(0.4);
+    }
+    .moon-icon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
     }
 }
 </style>

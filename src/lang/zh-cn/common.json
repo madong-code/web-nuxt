@@ -1,5 +1,6 @@
 {
   "language": "语言",
+  "actionMenu": "快捷入口",
   "logout_login": "注销登录",
   "member_center": "个人中心",
   "login": "登录",
@@ -10,6 +11,7 @@
   "captcha_title": "请先完成安全验证",
   "confirm": "确认",
   "cancel": "取消",
+  "more": "更多",
   "siteClose": "站点已关闭",
   "setting": {
     "config": {

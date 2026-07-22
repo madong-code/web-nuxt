@@ -1,10 +1,11 @@
 /**
  * 站点首页模块 API
  *
- * 对应后端：site/AdvertisementController, site/LinkController, site/MenuController, site/SiteController
+ * 对应后端：site/AdvertisementController, site/LinkController, site/SiteController
  */
 import request from '~/api/request'
-import type { LinkItem, AdvertisementItem, NavigationItem, SiteData } from './types'
+import type { LinkItem, AdvertisementItem } from './types'
+import type { RoutingConfig } from './types'
 
 /**
  * 获取友情链接列表
@@ -35,15 +36,9 @@ export function getAdPositionInfo(params?: { type?: string }): Promise<Advertise
 }
 
 /**
- * 获取导航菜单列表
+ * 获取路由菜单模式运行期配置
+ * 用于覆盖构建期默认模式，以及前端模式下下发菜单可见性/权限
  */
-export function getNavigationList(): Promise<NavigationItem[]> {
-    return request.get('/site/nav')
-}
-
-/**
- * 获取站点首页数据（广告、导航、友情链接等）
- */
-export function getSiteData(): Promise<SiteData> {
-    return request.get('/site/site-data')
+export function getRoutingConfig(): Promise<RoutingConfig> {
+    return request.get('/site/routing-config')
 }

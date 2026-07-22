@@ -18,6 +18,8 @@
         <!-- 右侧功能区域 -->
         <div class="header-right">
             <client-only>
+                <!-- 头部动作菜单（category='3'）：消息铃铛等扩展入口，置于最左侧 -->
+                <HeaderActionsExtra v-if="!isMobile" class="header-actions-extra-wrapper" />
                 <div v-if="isMobile" class="mobile-menu-wrapper">
                     <div
                         v-if="!systemStore.$state.site.menu_expand"
@@ -49,6 +51,7 @@ import Menu from './menu.vue'
 import Logo from './logo.vue'
 import MobileDrawer from './mobile-drawer.vue'
 import HeaderActions from './header-actions.vue'
+import HeaderActionsExtra from './header-actions-extra.vue'
 import { Icon } from '~/components/icon'
 import { useSystemStore } from '~/stores/system'
 import { inject, ref, nextTick, onMounted, onUnmounted } from 'vue'
@@ -115,7 +118,7 @@ const toggleDarkMode = () => {
 
 <style scoped lang="scss">
 .ma-header {
-    background-color: var(--ma-bg-color-overlay);
+    background-color: var(--el-bg-color-page);
     position: relative;
     z-index: 1000;
     width: 100%;
@@ -144,7 +147,7 @@ const toggleDarkMode = () => {
     justify-content: space-between;
     max-width: 1450px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 50px 0 20px;
     height: var(--el-header-height);
 }
 
@@ -158,7 +161,7 @@ const toggleDarkMode = () => {
     flex: 1;
     display: flex;
     justify-content: flex-end;
-    margin: 0 20px;
+    margin: 0 12px;
     
     .frontend-header-menu {
         height: var(--el-header-height);
@@ -186,6 +189,8 @@ const toggleDarkMode = () => {
     align-items: center;
     justify-content: flex-end;
     gap: 0;
+    // min-width: 250px;
+    padding-left: 16px;
     
     .frontend-header-menu {
         height: var(--el-header-height);

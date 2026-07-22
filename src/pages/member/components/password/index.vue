@@ -26,6 +26,8 @@ import { ref, reactive } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { changePassword } from '~/api/member'
+import { useMemberStore } from '~/stores/member'
+import { t } from '~/composables/lang'
 
 const passwordFormRef = ref<FormInstance>()
 const loading = ref(false)
@@ -47,7 +49,7 @@ const rules = reactive<FormRules>({
   confirmPassword: [
     { required: true, message: t('member.password.validation.confirm_password_required'), trigger: 'blur' },
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (value !== passwordForm.newPassword) {
           callback(new Error(t('member.password.validation.confirm_password_mismatch')))
         } else {
@@ -67,10 +69,14 @@ const submitForm = async () => {
       try {
         await changePassword({
           old_password: passwordForm.oldPassword,
-          new_password: passwordForm.newPassword
+          new_password: passwordForm.newPassword,
+          confirm_password: passwordForm.confirmPassword,
         })
         ElMessage.success(t('member.password.success'))
-        resetForm()
+        // 密码修改后强制退出，需用新密码重新登录
+        setTimeout(() => {
+          useMemberStore().logout()
+        }, 1500)
       }finally {
         loading.value = false
       }

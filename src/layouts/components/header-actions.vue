@@ -33,7 +33,6 @@
       :class="$attrs.mode + '-theme-switch'"
     >
       <DarkSwitch />
-      <!-- <DarkToggle v-if="!isMobile" /> -->
     </el-menu-item>
 
     <!-- 已登录用户场景 -->
@@ -62,8 +61,39 @@
         {{ t("common.member_center") }}
       </el-menu-item>
 
-      <!-- 会员中心菜单 -->
-      <MenuSub :menus="systemStore.site.member_menu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
+      <!-- 会员中心菜单（el-sub-menu 侧边弹出，与"更多"模式一致，父级不会关闭） -->
+      <template v-for="item in systemStore.site.member_menu" :key="item.id">
+        <!-- 有子菜单 → el-sub-menu 侧边弹出（teleported 到 body） -->
+        <el-sub-menu
+          v-if="systemStore.hasChildren(item)"
+          :index="'member-' + item.id"
+          :teleported="true"
+          popper-class="member-sub-popover"
+        >
+          <template #title>
+            <Icon v-if="showIcon && item.icon" :icon="item.icon" color="var(--el-text-color-primary)" />
+            <span class="member-expand-label">{{ item.title }}</span>
+          </template>
+          <el-menu-item
+            v-for="child in item.children"
+            :key="child.id"
+            :index="'member-sub-' + child.id"
+            @click="handleSubMenuClick(child)"
+          >
+            <Icon v-if="showIcon && child.icon" :icon="child.icon" color="var(--el-text-color-primary)" />
+            {{ child.title }}
+          </el-menu-item>
+        </el-sub-menu>
+        <!-- 无子菜单 → 直接渲染（叶子节点，点击后关闭父级） -->
+        <el-menu-item
+          v-else
+          :index="'column-' + item.id"
+          @click="handleMemberMenuClick(item)"
+        >
+          <Icon v-if="showIcon && item.icon" :icon="item.icon" color="var(--el-text-color-primary)" />
+          {{ item.title }}
+        </el-menu-item>
+      </template>
 
       <el-menu-item @click="$emit('menu-click'); memberStore.logout()" index="user-logout">
         <Icon
@@ -94,21 +124,20 @@ import { navigateTo } from "nuxt/app";
 import type { Menus } from "~/stores/interface";
 import defaultAvatar from "~/assets/images/default_avatar.png";
 import { fullUrl, getToken } from "~/utils/common";
-import DarkToggle from "./dark-toggle.vue";
 import DarkSwitch from "./dark-switch.vue";
 import LoadingDialog from "@/components/login-dialog/index.vue";
-import MenuSub from "./menu-sub.vue";
 import { Icon } from '~/components/icon';
 import { ElMessage } from "element-plus";
 import { useMemberStore } from "~/stores/member";
 import { useSystemStore } from "~/stores/system";
 import { useConfigStore } from "~/stores/config";
 import { t } from "~/composables/lang";
-import { getDark, setDark } from "~/utils/dark";
 
 const memberStore = useMemberStore();
 const systemStore = useSystemStore();
 const configStore = useConfigStore();
+
+
 
 // 添加响应式的语言 key，用于强制组件重新渲染
 const languageKey = ref(systemStore.lang);
@@ -125,11 +154,8 @@ const availableLanguages = computed(() => {
   return languages;
 });
 const currentLanguage = computed(() => {
-  // 从 systemStore 中获取语言设置，确保与状态保持同步
   return systemStore.lang;
 });
-
-
 
 interface Props {
   showIcon?: boolean;
@@ -155,15 +181,11 @@ const checkMobile = () => {
 
 /**
  * 获取用户头像URL
- * @param avatarUrl 用户头像URL，可为空、null或undefined
- * @returns 完整的头像URL，如果传入空值则返回默认头像
  */
 const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
   if (!avatarUrl || avatarUrl.trim() === "") {
-    // 返回默认头像
     return defaultAvatar;
   }
-
   return fullUrl(avatarUrl);
 };
 
@@ -186,21 +208,54 @@ const handleLoginClick = () => {
 };
 
 /**
- * 处理语言切换
- * @param lang 语言代码
+ * 子菜单项点击（popover 内的叶子节点）
+ * - 关闭自身 popover 和父级下拉
+ * - 然后导航
  */
-const handleLanguageChange = (lang: string) => {
-  const success = systemStore.setLanguage(lang);
-  
-  // 强制更新 languageKey，触发组件重新渲染
-  languageKey.value = lang;
-  
-  // 不再刷新页面，语言切换应该立即生效
+const handleSubMenuClick = (menu: Menus) => {
+  emit('menu-click');
+  doNavigate(menu);
 };
 
 /**
- * 菜单被点击时额外对无需激活的菜单处理（外链、暗黑模式开关、语言切换等）
- * 检查菜单是否需要激活，如果否，还原 state.activeMenu
+ * 叶子节点点击（无子菜单的普通项）
+ */
+const handleMemberMenuClick = (menu: Menus) => {
+  emit('menu-click');
+  doNavigate(menu);
+};
+
+/**
+ * 导航逻辑（外链/目录/路径）
+ */
+const doNavigate = (menu: Menus) => {
+  if (systemStore.isDirectory(menu)) {
+    return;
+  }
+  
+  if (systemStore.isExternalLink(menu)) {
+    const target = systemStore.getTarget(menu);
+    if (menu.url) {
+      window.open(menu.url, target);
+    }
+    return;
+  }
+  
+  if (menu.path) {
+    navigateTo(menu.path);
+  }
+};
+
+/**
+ * 处理语言切换
+ */
+const handleLanguageChange = (lang: string) => {
+  systemStore.setLanguage(lang);
+  languageKey.value = lang;
+};
+
+/**
+ * 菜单被点击时额外对无需激活的菜单处理
  */
 const onSelect = (index: string) => {
   if (noNeedActive(systemStore.site.head_nav, index)) {
@@ -212,11 +267,6 @@ const onSelect = (index: string) => {
   }
 };
 
-/**
- * 检查一个菜单是否需要激活态
- * @param menus
- * @param index
- */
 const noNeedActive = (menus: Menus[], index: string) => {
   if (index.indexOf("language-switch") === 0 || index == "theme-switch") {
     return true;
@@ -224,26 +274,18 @@ const noNeedActive = (menus: Menus[], index: string) => {
   return isExternalLink(menus, index);
 };
 
-/**
- * 检查一个菜单是否是外站链接，如果是，不要激活
- * @param menus
- * @param index
- */
 const isExternalLink = (menus: Menus[], index: string): boolean => {
-  // 修复：添加空值检查
   if (!menus || !Array.isArray(menus)) {
     return false;
   }
 
   for (const key in menus) {
-    // 修复：检查 menus[key] 是否存在
     if (!menus[key]) continue;
 
     const columnIndex = `column-${menus[key].id}`;
     if (columnIndex == index) {
       return menus[key].meta?.menu_type == "link";
     }
-    // 修复：添加 children 存在性检查
     if (
       menus[key].children &&
       Array.isArray(menus[key].children) &&
@@ -254,9 +296,6 @@ const isExternalLink = (menus: Menus[], index: string): boolean => {
     }
   }
   return false;
-};
-const toggleDarkMode = () => {
-  setDark(!getDark());
 };
 
 onMounted(() => {
@@ -326,9 +365,20 @@ onUnmounted(() => {
   padding-right: 0;
 }
 
+// 会员菜单标题文字
+.member-expand-label {
+  flex: 1;
+}
+
 // 语言切换选中状态
 .language-switch.is-active {
   color: var(--el-menu-active-color) !important;
   font-weight: 500;
+}
+</style>
+<!-- 会员子菜单弹出面板（非 scoped，el-sub-menu teleport 到 body 后需要全局样式） -->
+<style lang="scss">
+.member-sub-popover {
+  min-width: 120px;
 }
 </style>

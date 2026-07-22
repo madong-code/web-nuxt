@@ -1,9 +1,10 @@
 import { ElMessage } from 'element-plus'
 import qs from 'qs'
-import { getToken, getRefreshToken } from '~/utils/common'
-import { useRuntimeConfig, navigateTo, useCookie } from 'nuxt/app'
+import { getToken } from '~/utils/common'
+import { useRuntimeConfig, navigateTo } from 'nuxt/app'
 import { useMemberStore } from '~/stores/member'
 import { useSystemStore } from '~/stores/system'
+import { t } from '~/composables/lang'
 
 // ====== 响应类型定义 ======
 
@@ -68,7 +69,7 @@ class Http {
     watch: false
   }
   private isRefreshing = false
-  private refreshSubscribers: ((token: string) => void)[] = []
+  private refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = []
 
   public constructor() {
     /**
@@ -130,6 +131,17 @@ class Http {
     return null
   }
 
+  /**
+   * 拼接完整请求 URL（消除 upload / request / refreshToken 中重复的 baseURL 拼接逻辑）
+   */
+  private buildFullUrl(url: string): string {
+    const runtimeConfig = useRuntimeConfig()
+    const baseURL = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
+    const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
+    const normalizedUrl = url.startsWith('/') ? url.slice(1) : url
+    return `${normalizedBaseURL}/${normalizedUrl}`
+  }
+
   public get<T = any>(url: string, query = {}, config: ConfigOption = {}): Promise<T> {
     url += '?' + qs.stringify(query)
     return this.request<T>(url, 'GET', {}, config)
@@ -144,16 +156,9 @@ class Http {
    */
   public upload<T = any>(url: string, formData: FormData, config: ConfigOption = {}): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      setTimeout(async () => {
+      (async () => {
         try {
-          // 处理首次请求baseurl空的问题
-          const runtimeConfig = useRuntimeConfig()
-          const baseURL = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
-
-          // 处理 URL 路径，确保没有多余的斜杠
-          const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
-          const normalizedUrl = url.startsWith('/') ? url.slice(1) : url
-          const fullURL = `${normalizedBaseURL}/${normalizedUrl}`
+          const fullURL = this.buildFullUrl(url)
 
           // 执行请求拦截器
           if (this.options.onRequest) {
@@ -233,7 +238,7 @@ class Http {
           ElMessage({ message: '网络请求失败', type: 'error' })
           reject(error)
         }
-      }, this.options.baseURL ? 0 : 500)
+      })()
     })
   }
 
@@ -250,16 +255,9 @@ class Http {
    */
   private request<T = any>(url: string, method: string, param: AnyObject = {}, config: ConfigOption = {}): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      setTimeout(async () => {
+      (async () => {
         try {
-          // 处理首次请求baseurl空的问题
-          const runtimeConfig = useRuntimeConfig()
-          const baseURL = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
-
-          // 处理 URL 路径，确保没有多余的斜杠
-          const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
-          const normalizedUrl = url.startsWith('/') ? url.slice(1) : url
-          const fullURL = `${normalizedBaseURL}/${normalizedUrl}`
+          const fullURL = this.buildFullUrl(url)
 
           // 执行请求拦截器
           if (this.options.onRequest) {
@@ -416,18 +414,15 @@ class Http {
           ElMessage({ message: '网络请求失败', type: 'error' })
           reject(error)
         }
-      }, this.options.baseURL ? 0 : 500);
+      })();
     })
   }
 
   private async handle401Error(originalRequest: any): Promise<string> {
     if (this.isRefreshing) {
-      // 如果正在刷新 token，将请求加入队列
-      return new Promise((resolve) => {
-        this.refreshSubscribers.push((token) => {
-          originalRequest.options.headers['Authorization'] = `Bearer ${token}`
-          resolve(token)
-        })
+      // 如果正在刷新 token，将请求加入队列（保存 resolve/reject，刷新失败时 reject 挂起请求）
+      return new Promise<string>((resolve, reject) => {
+        this.refreshSubscribers.push({ resolve, reject })
       })
     }
 
@@ -438,12 +433,14 @@ class Http {
       const newToken = await this.refreshToken()
 
       // 通知所有队列中的请求
-      this.refreshSubscribers.forEach((callback) => callback(newToken))
+      this.refreshSubscribers.forEach(({ resolve: resolveFn }) => resolveFn(newToken))
       this.refreshSubscribers = []
 
       return newToken
     } catch (error) {
-      // 刷新失败，跳转到登录页
+      // 刷新失败：reject 所有挂起请求（避免并发请求永久 pending），再登出
+      this.refreshSubscribers.forEach(({ reject: rejectFn }) => rejectFn(error))
+      this.refreshSubscribers = []
       useMemberStore().logout()
       throw error
     } finally {
@@ -452,29 +449,15 @@ class Http {
   }
 
   private async refreshToken(): Promise<string> {
-    const runtimeConfig = useRuntimeConfig()
-    let baseURL = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api`
-
-    // 移除末尾斜杠，统一 URL 拼接
-    baseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
-
-    // 从 store 中获取 refresh token
+    // 从 store 中获取 refresh token（token 仅持久化于 member store，不存在 cookie）
     const memberStore = useMemberStore()
-    let refreshToken = memberStore.refreshToken
-
-    // 如果 store 中没有，尝试从 cookie 获取
-    if (!refreshToken) {
-      const cookieRefreshToken = useCookie('refreshToken').value
-      if (cookieRefreshToken) {
-        refreshToken = cookieRefreshToken
-      }
-    }
+    const refreshToken = memberStore.refreshToken
 
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }
 
-    const response = await fetch(`${baseURL}/auth/refresh`, {
+    const response = await fetch(this.buildFullUrl('/auth/refresh'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -487,7 +470,7 @@ class Http {
     if (data.code == 0 && data.data) {
       const { access_token, refresh_token } = data.data
 
-      // 更新 store 中的 token
+      // 更新 store 中的 token（permissions 不变）
       await memberStore.setToken(access_token, refresh_token)
 
       return access_token

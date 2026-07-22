@@ -23,3 +23,21 @@ html.dark {
     @include set-component-css-var('bg-color', $dark-bg-color);
     @include set-component-css-var('border-color', $dark-border-color);
 }
+
+// 框架外壳暗黑：统一页面画布与页脚底色，使头部 / 内容 / 页脚协调一致
+html.dark {
+    body,
+    #app {
+        background-color: var(--el-bg-color-page);
+    }
+
+    // 页脚分隔线在暗黑下使用边框色（原 rgba(0,0,0,0.08) 在暗色几乎不可见）
+    .footer-links-section {
+        border-bottom-color: var(--el-border-color);
+    }
+
+    // 头部与内容画布齐平后，用常驻分隔线保持导航层次
+    .ma-header::after {
+        background-color: var(--el-border-color);
+    }
+}

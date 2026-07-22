@@ -1,5 +1,15 @@
 // https://v3.nuxtjs.org/docs/directory-structure/nuxt.config
 import path from 'path'
+// 提前加载 .env，确保 process.env 在 config 评估时可用
+import { config as loadEnv } from 'dotenv'
+loadEnv({ path: '.env' })
+if (process.env.NODE_ENV === 'development') {
+  loadEnv({ path: '.env.development', override: true })
+} else if (process.env.BUILD_TARGET === 'integrated') {
+  loadEnv({ path: '.env.integrated' })
+} else {
+  loadEnv({ path: '.env.production' })
+}
 
 export default defineNuxtConfig({
   // 启用 src/ 目录布局（Nuxt 4 推荐）
@@ -20,7 +30,7 @@ export default defineNuxtConfig({
   },
 
   app: {
-    baseURL: '/web',
+    baseURL: process.env.NUXT_APP_BASE_URL || '/',
     head: {
       htmlAttrs: {
         lang: 'zh-cn'
@@ -35,7 +45,13 @@ export default defineNuxtConfig({
       REQUEST_HEADER_CHANNEL_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_CHANNEL_KEY || 'pc',
       REQUEST_HEADER_TOKEN_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_TOKEN_KEY || 'Authorization',
       DEFAULT_LANG: process.env.NUXT_PUBLIC_DEFAULT_LANG || 'zh-CN',
+      // 默认租户 ID（从 .env 读取，空则请求时不自动注入）
       X_TENANT_ID: process.env.NUXT_PUBLIC_X_TENANT_ID || '',
+      // 路由菜单模式：frontend / backend / hybrid，默认 frontend
+      // frontend — 前端 routes 声明式生成菜单骨架
+      // backend  — 后端接口下发菜单
+      // hybrid   — 后端菜单为主骨架 + 前端路由补充合并
+      ROUTING_MODE: process.env.NUXT_PUBLIC_ROUTING_MODE || 'frontend',
     },
   },
 

@@ -14,32 +14,10 @@
 </template>
 
 <script lang="ts" setup>
-import {  useTemplateRef, watch, provide } from 'vue';
 import layoutHeader from "./components/header.vue";
+import { useLayoutScroll } from '~/composables/layout-scroll';
 
-const route = useRoute();
-const mainScrollbarRef = useTemplateRef('mainScrollbarRef');
-
-// 计算滚动区域高度
-const calcHeight = (headerHeight: number) => {
-  return {
-    height: `calc(100vh - ${headerHeight}px)`,
-    maxHeight: `calc(100vh - ${headerHeight}px)`
-  };
-};
-
-// 路由切换时滚动条滚动至顶部
-watch(
-  () => route.fullPath,
-  () => {
-    if (!route.meta.disableScrollTo) {
-      mainScrollbarRef.value?.scrollTo(0, 0);
-    }
-  }
-);
-
-// 将滚动条的 ref provide 给子级组件
-provide('mainScrollbarRef', mainScrollbarRef);
+const { calcHeight } = useLayoutScroll();
 </script>
 
 <style scoped lang="scss">
@@ -53,7 +31,7 @@ provide('mainScrollbarRef', mainScrollbarRef);
   .layout-header {
     position: relative;
     z-index: 1000;
-    background-color: var(--ma-bg-color-overlay);
+    background-color: var(--el-bg-color-page);
     height: 60px;
     flex-shrink: 0;
   }

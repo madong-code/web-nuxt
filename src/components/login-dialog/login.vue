@@ -211,9 +211,9 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed, onUnmounted } from "vue";
-import { authenticateUser, authenticateWithMobile, authenticateWithWechat,generateWechatQrCode, checkWechatScanStatus } from "@/api/auth";
-import useConfigStore from "@/stores/config";
-import { useMemberStore } from "@/stores/member";
+import { authenticateUser, authenticateWithMobile, authenticateWithWechat,generateWechatQrCode, checkWechatScanStatus } from "~/api/auth";
+import useConfigStore from "~/stores/config";
+import { useMemberStore } from "~/stores/member";
 import QRCode from "qrcode";
 import type { FormInstance } from "element-plus";
 import { Icon } from '~/components/icon'
@@ -402,7 +402,7 @@ const handleWechatLoginSuccess = (loginData: any) => {
     navigateTo("/auth/bind");
     memberStore.logClose();
   } else {
-    memberStore.setToken(loginData.access_token, loginData.refresh_token || '');
+    memberStore.setToken(loginData.access_token, loginData.refresh_token || '', loginData.permissions || []);
     memberStore.logClose();
   }
 };
@@ -424,7 +424,7 @@ const handleLoginSubmit = async () => {
     const loginMethod = currentLoginType.value === "username" ? authenticateUser : authenticateWithMobile;
     const data = await loginMethod(formData) as any;
     
-    await memberStore.setToken(data?.access_token || '', data?.refresh_token || '');
+    await memberStore.setToken(data?.access_token || '', data?.refresh_token || '', data?.permissions || []);
     memberStore.logClose();
   } catch (error) {
     isLoading.value = false;

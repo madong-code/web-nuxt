@@ -10,5 +10,13 @@
   "sign_failed": "签到失败",
   "get_sign_status_failed": "获取签到状态失败",
   "get_sign_calendar_failed": "获取签到日历失败",
-  "rules_content": "签到规则：\n1. 每日签到可获得1-5积分\n2. 连续签到天数越多，获得积分越多\n3. 连续签到7天可获得额外奖励"
+  "rules_content": "签到规则：\n1. 每日签到可获得1-5积分\n2. 连续签到天数越多，获得积分越多\n3. 连续签到7天可获得额外奖励",
+  "re_sign_title": "补签",
+  "re_sign_confirm": "确认补签 {date} ？",
+  "re_sign_hint": "补签会对应的补签机会，补签后可获得对应积分",
+  "re_sign_button": "确认补签",
+  "re_sign_success": "{date} 补签成功！",
+  "re_sign_failed": "补签失败",
+  "signed_hint": "{date} 已签到",
+  "re_sign_hint_day": "可补签 {date}"
 }

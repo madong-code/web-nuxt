@@ -14,7 +14,12 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "nuxi dev",
+        "dev:frontend": "cross-env NUXT_PUBLIC_ROUTING_MODE=frontend nuxi dev",
+        "dev:backend": "cross-env NUXT_PUBLIC_ROUTING_MODE=backend nuxi dev",
         "build": "nuxi build",
+        "build:frontend": "cross-env NUXT_PUBLIC_ROUTING_MODE=frontend nuxi build",
+        "build:backend": "cross-env NUXT_PUBLIC_ROUTING_MODE=backend nuxi build",
+        "build:integrated": "cross-env BUILD_TARGET=integrated nuxi build",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "preview": "nuxi preview",
@@ -38,7 +43,8 @@
         "qrcode": "^1.5.4",
         "qs": "^6.14.1",
         "vue-i18n": "^11.2.8",
-        "axios": "^1.6.0"
+        "axios": "^1.6.0",
+        "dayjs": "^1.11.13"
     },
     "devDependencies": {
         "@element-plus/nuxt": "^1.1.4",
@@ -55,6 +61,7 @@
         "@unocss/nuxt": "^66.4.0",
         "@vueuse/nuxt": "^13.6.0",
         "consola": "^3.4.2",
+        "cross-env": "^7.0.3",
         "eslint": "^9.32.0",
         "nuxt": "^4.2.0",
         "sass": "^1.89.2",

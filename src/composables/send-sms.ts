@@ -1,5 +1,5 @@
 import { reactive, ref } from 'vue'
-import { sendSmsVerificationCode } from '@/api/system'
+import { sendSmsVerificationCode } from '~/api/system'
 
 export function useSendSms() {
     const canGetCode = ref(true),

@@ -25,8 +25,7 @@
         </el-row>
       </div>
       <div class="points-list">
-        <el-table :data="pointsRecords" style="width: 100%" v-loading="loading">
-          <el-table-column prop="id" :label="t('member.points.record_id')" width="200" />
+        <el-table :data="pointsRecords" style="width: 100%" v-loading="loading" height="200">
           <el-table-column prop="type" :label="t('member.points.type')" width="120">
             <template #default="scope">
               <el-tag :type="scope.row.type === 1 ? 'success' : 'danger'">
@@ -68,6 +67,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getPointTransactions, getMemberPointsTotal } from '~/api/member'
 import { timeFormat } from '~/utils/common'
+import { t } from '~/composables/lang'
 
 // 积分概览数据
 const pointsTotal = reactive({
@@ -108,7 +108,7 @@ const fetchPointsRecords = async () => {
       limit: pageSize.value
     })
     if (res) {
-      pointsRecords.value = res.items || []
+      pointsRecords.value = res.data || []
       total.value = res.total || 0
     }
   } catch (error) {
@@ -139,13 +139,14 @@ onMounted(() => {
 <style scoped>
 .member-points {
   padding: 20px;
+  color: var(--el-text-color-primary);
 }
 
 .page-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 
 .points-card {
@@ -154,13 +155,12 @@ onMounted(() => {
   box-shadow: none !important;
   padding: 30px;
   border-radius: 4px;
-  /* background-color: #ffffff; */
 }
 
 .points-summary {
   margin-bottom: 30px;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--el-fill-color-light);
   border-radius: 8px;
 }
 
@@ -170,14 +170,14 @@ onMounted(() => {
 
 .points-label {
   font-size: 14px;
-  color: #666;
+  color: var(--el-text-color-secondary);
   margin-bottom: 8px;
 }
 
 .points-value {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 
 .points-list {
@@ -190,10 +190,10 @@ onMounted(() => {
 }
 
 .text-success {
-  color: #67c23a;
+  color: var(--el-color-success);
 }
 
 .text-danger {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 </style>

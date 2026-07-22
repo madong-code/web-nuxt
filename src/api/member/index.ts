@@ -13,6 +13,8 @@ import type {
     SignStatistics,
     MemberLevel,
     SignStatus,
+    SignResult,
+    ReSignParams,
     BindPhoneParams,
     UpdateEmailParams,
 } from './types'
@@ -36,7 +38,7 @@ export function updateMemberInfo(data: Partial<MemberInfo>): Promise<boolean> {
  */
 export function getPointTransactions(data: {
     page?: number
-    page_size?: number
+    limit?: number
 }): Promise<PointTransactionsResponse> {
     return request.get('/member/points/record', data)
 }
@@ -53,7 +55,7 @@ export function getMemberPointsTotal(): Promise<number> {
  */
 export function getBalanceTransactions(data: {
     page?: number
-    page_size?: number
+    limit?: number
 }): Promise<BalanceTransactionsResponse> {
     return request.get('/member/balance/record', data)
 }
@@ -63,7 +65,7 @@ export function getBalanceTransactions(data: {
  */
 export function getAllBalanceTransactions(data?: {
     page?: number
-    page_size?: number
+    limit?: number
 }): Promise<BalanceTransactionsResponse> {
     return request.get('/member/balance/all', data)
 }
@@ -85,7 +87,7 @@ export function memberSign(): Promise<number> {
 /**
  * 执行签到（签到模块）
  */
-export function signIn(): Promise<boolean> {
+export function signIn(): Promise<SignResult> {
     return request.post('/member/sign')
 }
 
@@ -108,6 +110,13 @@ export function getSignCalendar(year: number, month: number): Promise<SignCalend
  */
 export function getSignStatistics(type: string = 'month'): Promise<SignStatistics> {
     return request.get('/member/sign/statistics', { type })
+}
+
+/**
+ * 补签
+ */
+export function reSign(data: ReSignParams): Promise<SignResult> {
+    return request.post('/member/sign/resign', data)
 }
 
 /**

@@ -393,8 +393,8 @@ const sendSmsCode = async (type: string) => {
         }
       }, 1000);
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || t('member.settings.code_send_failed'));
+  } catch {
+    // 业务异常已由请求层统一拦截提示，此处无需重复弹出
   }
 };
 
@@ -407,8 +407,8 @@ const updatePhone = async () => {
     ElMessage.success(t('member.settings.phone_update_success'));
     showPhoneDialog.value = false;
     await loadMemberInfo();
-  } catch (error: any) {
-    ElMessage.error(error.message || t('member.settings.phone_update_failed'));
+  } catch {
+    // 业务异常已由请求层统一拦截提示，此处无需重复弹出
   }
 };
 
@@ -421,8 +421,8 @@ const updateEmail = async () => {
     ElMessage.success(t('member.settings.email_update_success'));
     showEmailDialog.value = false;
     await loadMemberInfo();
-  } catch (error: any) {
-    ElMessage.error(error.message || t('member.settings.email_update_failed'));
+  } catch {
+    // 业务异常已由请求层统一拦截提示，此处无需重复弹出
   }
 };
 

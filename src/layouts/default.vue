@@ -15,36 +15,13 @@
 </template>
 
 <script lang="ts" setup>
-import {  useTemplateRef, watch, provide, onMounted } from 'vue';
 import layoutHeader from "./components/header.vue";
 import layoutFooter from "./components/footer.vue";
-import { useMemberStore } from '@/stores/member';
+import { useMemberStore } from '~/stores/member';
+import { useLayoutScroll } from '~/composables/layout-scroll';
 
-const route = useRoute();
-const mainScrollbarRef = useTemplateRef('mainScrollbarRef');
 const memberStore = useMemberStore();
-
-// 计算滚动区域高度
-const calcHeight = (headerHeight: number) => {
-  return {
-    height: `calc(100vh - ${headerHeight}px)`,
-    maxHeight: `calc(100vh - ${headerHeight}px)`
-  };
-};
-
-
-// 路由切换时滚动条滚动至顶部
-watch(
-  () => route.fullPath,
-  () => {
-    if (!route.meta.disableScrollTo) {
-      mainScrollbarRef.value?.scrollTo(0, 0);
-    }
-  }
-);
-
-// 将滚动条的 ref provide 给子级组件
-provide('mainScrollbarRef', mainScrollbarRef);
+const { calcHeight } = useLayoutScroll();
 </script>
 
 <style scoped lang="scss">
@@ -58,7 +35,7 @@ provide('mainScrollbarRef', mainScrollbarRef);
   .layout-header {
     position: relative;
     z-index: 1000;
-    background-color: var(--ma-bg-color-overlay);
+    background-color: var(--el-bg-color-page);
     height: 60px;
     flex-shrink: 0;
   }
@@ -154,7 +131,7 @@ provide('mainScrollbarRef', mainScrollbarRef);
 
 .layout-footer {
   color: var(--el-text-color-secondary);
-  background-color: transparent !important;
+  background-color: var(--el-bg-color-page) !important;
   position: relative;
   bottom: auto;
   width: 100%;

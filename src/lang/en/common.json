@@ -1,5 +1,6 @@
 {
   "language": "Language",
+  "actionMenu": "Quick Actions",
   "logout_login": "Logout",
   "member_center": "Member Center",
   "login": "Login",
@@ -10,6 +11,7 @@
   "captcha_title": "Please complete security verification",
   "confirm": "Confirm",
   "cancel": "Cancel",
+  "more": "More",
   "siteClose": "Site Closed",
   "setting": {
     "config": {

@@ -232,9 +232,9 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
-import { registerUser, registerWithMobile } from '@/api/auth'
-import { useConfigStore } from '@/stores/config'
-import { useMemberStore } from '@/stores/member'
+import { registerUser, registerWithMobile } from '~/api/auth'
+import { useConfigStore } from '~/stores/config'
+import { useMemberStore } from '~/stores/member'
 import { useCaptcha } from '~/composables/captcha'
 import type { FormInstance } from 'element-plus'
 import { Icon } from '~/components/icon'
@@ -391,7 +391,7 @@ const handleRegister = async () => {
     try {
       const registerApi = currentType.value === 'username' ? registerUser : registerWithMobile
       const data = await registerApi(formData) as any
-      memberStore.setToken(data.access_token, data.refresh_token || '')
+      memberStore.setToken(data.access_token, data.refresh_token || '', data.permissions || [])
       memberStore.logClose()
     } catch (error) {
       isLoading.value = false

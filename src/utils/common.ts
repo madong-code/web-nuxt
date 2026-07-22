@@ -1,9 +1,10 @@
 import type { FormInstance } from 'element-plus'
 import { isNull, trim } from 'lodash-es'
 import type { CSSProperties } from 'vue'
-import type { TranslateOptions } from 'vue-i18n'
 import { useMemberStore } from '~/stores/member'
 import { useConfigStore } from '~/stores/config'
+import { globals } from '~/stores/globals'
+import { useNuxtApp } from 'nuxt/app'
 
 
 type anyObj = { [key: string]: any }
@@ -15,20 +16,10 @@ type anyObj = { [key: string]: any }
  * @returns 完整的token字符串
  */
 export function getToken(type: string = 'Bearer'): null | string {
-    // 优先从 store 获取
-    let token = useMemberStore().token
-    
-    // 如果 store 中有token且不为空，直接返回
+    const token = useMemberStore().token
     if (token && token.trim() !== '') {
         return `${type} ${token}`
     }
-    
-    // 如果 store 中没有，尝试从 cookie 获取（处理页面刷新后的情况）
-    const cookieToken = useCookie('token').value
-    if (cookieToken && cookieToken.trim() !== '') {
-        return `${type} ${cookieToken}`
-    }
-    
     return null
 }
 
@@ -38,20 +29,10 @@ export function getToken(type: string = 'Bearer'): null | string {
  * @returns 完整的refresh token字符串
  */
 export function getRefreshToken(type: string = 'Bearer'): null | string {
-    // 优先从 store 获取
-    let refreshToken = useMemberStore().refreshToken
-    
-    // 如果 store 中有token且不为空，直接返回
+    const refreshToken = useMemberStore().refreshToken
     if (refreshToken && refreshToken.trim() !== '') {
         return `${type} ${refreshToken}`
     }
-    
-    // 如果 store 中没有，尝试从 cookie 获取（处理页面刷新后的情况）
-    const cookieRefreshToken = useCookie('refreshToken').value
-    if (cookieRefreshToken && cookieRefreshToken.trim() !== '') {
-        return `${type} ${cookieRefreshToken}`
-    }
-    
     return null
 }
 
@@ -220,11 +201,13 @@ export const getCurrentRoutePath = () => {
     return path
 }
 
-export function auth(node: string): boolean
-export function auth(node: { name: string; subNodeName?: string }): boolean
-
 /**
- * 权限检查函数
+ * 权限检查函数（暂未启用）
+ *
+ * 注意：当前为占位实现，始终返回 true。框架统一以 member store 的
+ * permissions / system store 的 checkMenuPermission 进行权限校验，
+ * 业务侧请勿依赖此函数的返回值。
+ *
  * @param node 权限节点，可以是字符串或对象
  * @returns 是否有权限
  */
@@ -239,7 +222,8 @@ export function auth(node: string | { name: string; subNodeName?: string }): boo
  */
 export const timeFormat = (dateTime: string | number | null = null, fmt = 'yyyy-mm-dd hh:MM:ss') => {
     if (dateTime == 'none') {
-        return i18n.global.t('None')
+        const nuxtApp: any = useNuxtApp()
+        return nuxtApp.$getI18n().global.t('None')
     }
 
     if (isNull(dateTime)) {

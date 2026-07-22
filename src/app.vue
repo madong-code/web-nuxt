@@ -50,9 +50,7 @@ if (import.meta.client) {
 }
 
 onMounted(async () => {
-  await systemStore.getSiteInfoFn()
-  // 初始化语言设置
-  systemStore.initLanguage()
+  // 站点信息与语言初始化已移至 plugins/init-site.client.ts（确保在中间件之前完成）
   // 初始化暗黑模式（确保客户端与服务器端保持一致）
   initDark()
 })

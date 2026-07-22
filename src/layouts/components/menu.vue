@@ -1,16 +1,36 @@
 <template>
-    <el-menu :default-active="state.activeMenu" @select="onSelect">
-        <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
+    <el-menu :default-active="state.activeMenu" :mode="mode" @select="onSelect">
+        <!-- 移动端（垂直模式）：直接展示全部菜单，不做溢出拆分 -->
+        <template v-if="isVertical">
+            <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
+        </template>
+        <!-- PC端（水平模式）：固定显示 + 溢出"更多" -->
+        <template v-else>
+            <MenuSub :menus="systemStore.visibleNavMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
+            <el-sub-menu
+                v-if="hasOverflow"
+                index="overflow-more"
+                class="overflow-more-menu"
+                :popper-offset="12"
+            >
+                <template #title>
+                    <Icon icon="mdi:dots-horizontal" color="var(--el-text-color-primary)" />
+                    {{ t('common.more') || '更多' }}
+                </template>
+                <MenuSub :menus="systemStore.overflowNavMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
+            </el-sub-menu>
+        </template>
     </el-menu>
 </template>
 
 <script setup lang="ts">
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import type { Menus } from '~/stores/interface'
-import { reactive, nextTick, watch } from 'vue'
+import { reactive, computed, nextTick, watch } from 'vue'
 import { useRoute, navigateTo } from 'nuxt/app'
 import { useSystemStore } from '~/stores/system'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '~/components/icon'
 import MenuSub from './menu-sub.vue'
 
 const route = useRoute()
@@ -19,11 +39,16 @@ const { t } = useI18n()
 
 interface Props {
     showIcon?: boolean
+    mode?: 'horizontal' | 'vertical'
 }
 
 const props = withDefaults(defineProps<Props>(), {
     showIcon: false,
+    mode: 'horizontal',
 })
+
+/** 是否为垂直布局（移动端侧边抽屉） */
+const isVertical = computed(() => props.mode === 'vertical')
 
 const emit = defineEmits<{
     'menu-click': []
@@ -34,16 +59,20 @@ const state = reactive({
     switchingLanguage: false,
 })
 
+// 是否有溢出菜单
+const hasOverflow = computed(() => systemStore.overflowNavMenu.length > 0)
+
 // 调试用：检查 navMenu 中是否有消息中心
 const navMenuKey = computed(() => {
-    const hasNotify = systemStore.navMenu?.some((m: Menus) => m.name === '消息中心' || m.path === '/notify')
-    import.meta.env.DEV && console.log('[Menu] navMenu has 消息中心:', hasNotify, 'menus:', systemStore.navMenu?.map((m: Menus) => m.name))
+    const hasNotify = systemStore.visibleNavMenu?.some((m: Menus) => m.name === '消息中心' || m.path === '/notify')
+    import.meta.env.DEV && console.log('[Menu] visibleNavMenu has 消息中心:', hasNotify, 'menus:', systemStore.visibleNavMenu?.map((m: Menus) => m.name))
     return hasNotify ? 'with-notify' : 'no-notify'
 })
 
 const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {
     if (route.path == '/') return (state.activeMenu = 'index')
 
+    // 同时在可见菜单和溢出菜单中搜索
     const menuId = findMenus(route)
     if (menuId) {
         state.activeMenu = 'column-' + menuId
@@ -53,6 +82,9 @@ const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {
 }
 
 const onSelect = (index: string) => {
+    // "更多"节点不需要高亮保持
+    if (index === 'overflow-more') return
+
     if (noNeedActive(systemStore.headNav, index)) {
         const oldActiveMenu = state.activeMenu
         state.activeMenu = ''
@@ -114,12 +146,20 @@ const handleClick = (path: string) => {
 }
 
 const findMenus = (route: RouteLocationNormalizedLoaded) => {
-    if (!systemStore.navMenu || !Array.isArray(systemStore.navMenu)) {
-        return false
+    // 移动端：直接在全部菜单中搜索
+    if (isVertical.value) {
+        const index = searchMenuIndex(systemStore.navMenu, route)
+        return index !== false ? index : false
     }
-    
-    const headNavIndex = searchMenuIndex(systemStore.navMenu, route)
-    if (headNavIndex !== false) return headNavIndex
+
+    // PC端：优先在可见菜单中搜索，再在溢出菜单中搜索
+    const visibleIndex = searchMenuIndex(systemStore.visibleNavMenu, route)
+    if (visibleIndex !== false) return visibleIndex
+
+    const overflowIndex = searchMenuIndex(systemStore.overflowNavMenu, route)
+    if (overflowIndex !== false) return overflowIndex
+
+    return false
 }
 
 setActiveMenu(route)
@@ -181,5 +221,13 @@ watch(
 }
 .theme-toggle-content {
     padding-right: 0;
+}
+
+// "更多"溢出菜单样式
+.overflow-more-menu {
+    :deep(.el-sub-menu__title) {
+        display: flex;
+        align-items: center;
+    }
 }
 </style>

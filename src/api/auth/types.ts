@@ -13,8 +13,12 @@ export interface LoginData {
 
 /** 登录响应 */
 export interface LoginResponse {
-    token: string
-    user: UserInfo
+    access_token: string
+    refresh_token: string
+    expires_in?: number
+    user_info?: UserInfo
+    /** 登录时下发的权限码列表 */
+    permissions?: string[]
 }
 
 /** 注册数据 */
@@ -35,13 +39,15 @@ export interface BindMobileData {
 
 /** 用户信息 */
 export interface UserInfo {
-    id: number
+    id: number | string
     username: string
     nickname?: string
     avatar?: string
     phone?: string
     email?: string
-    token: string
+    token?: string
+    /** 权限码列表 */
+    permissions?: string[]
 }
 
 /** 登录配置 */

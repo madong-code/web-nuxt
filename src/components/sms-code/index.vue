@@ -64,7 +64,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { sendSmsVerificationCode } from '@/api/system'
+import { sendSmsVerificationCode } from '~/api/system'
 import type { FormInstance } from 'element-plus'
 
 interface SmsCodeProps {

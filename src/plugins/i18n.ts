@@ -1,5 +1,5 @@
 import { createI18n } from 'vue-i18n'
-import storage from '@/utils/storage'
+import storage from '~/utils/storage'
 
 type LocaleMessages = Record<string, any>
 
@@ -140,7 +140,7 @@ function loadPluginLocales(localeDir: string): LocaleMessages {
   return messages
 }
 
-function loadAllLocaleMessages(locale: string): LocaleMessages {
+export function loadAllLocaleMessages(locale: string): LocaleMessages {
   const localeDir = locale
   const messages: LocaleMessages = {}
 
@@ -156,9 +156,11 @@ export default defineNuxtPlugin((NuxtApp) => {
   const locale = storage.get('lang') || 'zh-cn'
 
   const messages: Record<string, any> = {}
-  const locales = ['zh-cn', 'en']
-  for (const loc of locales) {
-    messages[loc] = loadAllLocaleMessages(loc)
+  // 仅预加载当前 locale（及其 fallback）的语言包，其余 locale 在切换时按需加载，
+  // 避免首屏一次性解析全部语言 JSON（本项目语言资源含业务插件 lang，体积较大）
+  messages[locale] = loadAllLocaleMessages(locale)
+  if (locale !== 'zh-cn') {
+    messages['zh-cn'] = loadAllLocaleMessages('zh-cn')
   }
 
   const i18n = createI18n({

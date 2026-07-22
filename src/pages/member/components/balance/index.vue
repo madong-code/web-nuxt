@@ -13,30 +13,33 @@
           <el-col :span="12">
             <div class="balance-item">
               <div class="balance-label">{{ t('member.balance.total_transaction') }}</div>
-              <div class="balance-value">{{ totalTransaction }}</div>
+              <div class="balance-value">{{ total }}</div>
             </div>
           </el-col>
         </el-row>
       </div>
       <div class="balance-list">
-        <el-table :data="balanceRecords" style="width: 100%">
-          <el-table-column prop="id" :label="t('member.balance.record_id')" width="100" />
-          <el-table-column prop="type" :label="t('member.balance.type')" width="120">
+        <el-table :data="balanceRecords" style="width: 100%" v-loading="loading" height="200">
+          <el-table-column prop="type_text" :label="t('member.balance.type')" width="120">
             <template #default="scope">
-              <el-tag :type="scope.row.type === 'income' ? 'success' : 'danger'">
-                {{ scope.row.type === 'income' ? t('member.balance.type_income') : t('member.balance.type_expense') }}
+              <el-tag :type="scope.row.type === 1 ? 'success' : 'danger'">
+                {{ scope.row.type_text || (scope.row.type === 1 ? t('member.balance.type_income') : t('member.balance.type_expense')) }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="amount" :label="t('member.balance.amount')" width="120">
             <template #default="scope">
-              <span :class="scope.row.type === 'income' ? 'text-success' : 'text-danger'">
-                {{ scope.row.type === 'income' ? '+' : '-' }}{{ scope.row.amount.toFixed(2) }}
+              <span :class="scope.row.type === 1 ? 'text-success' : 'text-danger'">
+                {{ scope.row.type === 1 ? '+' : '-' }}{{ scope.row.amount }}
               </span>
             </template>
           </el-table-column>
           <el-table-column prop="description" :label="t('member.balance.description')" />
-          <el-table-column prop="created_at" :label="t('member.balance.time')" width="180" />
+          <el-table-column prop="created_at" :label="t('member.balance.time')" width="180">
+            <template #default="scope">
+              {{ timeFormat(scope.row.created_at, 'yyyy-mm-dd hh:MM:ss') }}
+            </template>
+          </el-table-column>
         </el-table>
         <div class="pagination">
           <el-pagination
@@ -55,78 +58,74 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getBalanceTransactions, getMemberProfile } from '~/api/member'
+import { timeFormat } from '~/utils/common'
+import { t } from '~/composables/lang'
 
-// 余额概览数据
-const currentBalance = ref(8888.88)
-const totalTransaction = ref(128888.88)
+const currentBalance = ref(0)
+const loading = ref(false)
 
-// 分页数据
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(80)
+const total = ref(0)
+const balanceRecords = ref([])
 
-// 余额记录数据
-const balanceRecords = ref([
-  {
-    id: 1,
-    type: 'income',
-    amount: 1000.00,
-    description: '充值',
-    created_at: '2026-01-30 10:00:00'
-  },
-  {
-    id: 2,
-    type: 'expense',
-    amount: 199.99,
-    description: '购买商品',
-    created_at: '2026-01-29 15:30:00'
-  },
-  {
-    id: 3,
-    type: 'income',
-    amount: 500.00,
-    description: '提现',
-    created_at: '2026-01-28 09:15:00'
-  },
-  {
-    id: 4,
-    type: 'expense',
-    amount: 99.00,
-    description: '服务费用',
-    created_at: '2026-01-27 14:20:00'
-  },
-  {
-    id: 5,
-    type: 'income',
-    amount: 200.00,
-    description: '退款',
-    created_at: '2026-01-26 11:45:00'
+const fetchMemberBalance = async () => {
+  try {
+    const profile: any = await getMemberProfile()
+    currentBalance.value = profile?.balance ?? 0
+  } catch {
+    // 获取余额失败，使用默认值
   }
-])
+}
 
-// 分页方法
+const fetchBalanceRecords = async () => {
+  loading.value = true
+  try {
+    const res: any = await getBalanceTransactions({
+      page: currentPage.value,
+      limit: pageSize.value
+    })
+    if (res) {
+      balanceRecords.value = res.items || []
+      total.value = res.total || 0
+    }
+  } catch {
+    // 业务异常已由请求层统一拦截提示
+  } finally {
+    loading.value = false
+  }
+}
+
 const handleSizeChange = (size: number) => {
   pageSize.value = size
-  // 这里应该重新获取数据
+  currentPage.value = 1
+  fetchBalanceRecords()
 }
 
 const handleCurrentChange = (current: number) => {
   currentPage.value = current
-  // 这里应该重新获取数据
+  fetchBalanceRecords()
 }
+
+onMounted(() => {
+  fetchMemberBalance()
+  fetchBalanceRecords()
+})
 </script>
 
 <style scoped>
 .member-balance {
   padding: 20px;
+  color: var(--el-text-color-primary);
 }
 
 .page-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 
 .balance-card {
@@ -135,13 +134,12 @@ const handleCurrentChange = (current: number) => {
   box-shadow: none !important;
   padding: 30px;
   border-radius: 4px;
-  background-color: #ffffff;
 }
 
 .balance-summary {
   margin-bottom: 30px;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--el-fill-color-light);
   border-radius: 8px;
 }
 
@@ -151,14 +149,14 @@ const handleCurrentChange = (current: number) => {
 
 .balance-label {
   font-size: 14px;
-  color: #666;
+  color: var(--el-text-color-secondary);
   margin-bottom: 8px;
 }
 
 .balance-value {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 
 .balance-list {
@@ -171,10 +169,10 @@ const handleCurrentChange = (current: number) => {
 }
 
 .text-success {
-  color: #67c23a;
+  color: var(--el-color-success);
 }
 
 .text-danger {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 </style>

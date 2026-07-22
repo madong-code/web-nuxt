@@ -4,7 +4,7 @@
 
 /** 会员基本信息 */
 export interface MemberInfo {
-    id: number
+    id: number | string
     username: string
     nickname?: string
     avatar?: string
@@ -14,6 +14,8 @@ export interface MemberInfo {
     balance: number
     level: number
     level_name?: string
+    /** 权限码列表（由后端通过标签-权限关系注入） */
+    permissions?: string[]
     created_at: number
     updated_at: number
 }
@@ -38,51 +40,60 @@ export interface Address {
 export interface PointTransaction {
     id: number
     user_id: number
-    type: string
+    type: number
+    type_text?: string
     amount: number
     balance: number
     description: string
-    created_at: number
+    created_at: string
 }
 
 /** 积分流水响应 */
 export interface PointTransactionsResponse {
+    data: PointTransaction[]
     total: number
-    list: PointTransaction[]
+    current_page: number
+    per_page: number
 }
 
 /** 余额流水记录 */
 export interface BalanceTransaction {
     id: number
-    user_id: number
-    type: string
+    member_id: number
+    type: number
+    type_text?: string
+    category_text?: string
     amount: number
     balance: number
     description: string
-    created_at: number
+    created_at: string
 }
 
 /** 余额流水响应 */
 export interface BalanceTransactionsResponse {
+    data: BalanceTransaction[]
     total: number
-    list: BalanceTransaction[]
+    current_page: number
+    per_page: number
 }
 
-/** 签到日历 */
+/** 签到日历响应 */
 export interface SignCalendar {
     year: number
     month: number
-    signed_dates: number[]
-    total_signed: number
-    total_can_sign: number
+    calendar: string[]  // 已签到日期数组 ['2026-07-01', '2026-07-03', ...]
 }
 
 /** 签到统计 */
 export interface SignStatistics {
-    total_signed: number
-    continuous_signed: number
-    this_month_signed: number
-    today_signed: boolean
+    total_sign_days?: number
+    month_sign_days?: number
+    continuous_days?: number
+    today_signed?: boolean
+    sign_days?: number
+    week_start?: string
+    week_end?: string
+    total_days?: number
 }
 
 /** 会员等级信息 */
@@ -95,9 +106,24 @@ export interface MemberLevel {
 
 /** 签到状态 */
 export interface SignStatus {
-    today_signed: boolean
+    is_signed_today: boolean
     continuous_days: number
-    can_sign: boolean
+    total_sign_days: number
+    month_sign_days: number
+    today: string
+    points: number
+}
+
+/** 签到结果 */
+export interface SignResult {
+    points: number
+    continuous_days: number
+    sign_date: string
+}
+
+/** 补签参数 */
+export interface ReSignParams {
+    sign_date: string
 }
 
 /** 发送验证码参数 */

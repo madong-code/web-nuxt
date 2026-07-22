@@ -19,18 +19,41 @@
       <Menu :show-icon="true" mode="vertical" @menu-click="closeDrawer" />
     </div>
 
-    <!-- 移动端-会员菜单 -->
-    <div class="mobile-menu-section">
+    <!-- 移动端-头部动作菜单（category='3'：铃铛等，在语言切换前） -->
+    <div v-if="actions.length > 0" class="mobile-menu-section">
+      <div
+        v-for="action in actions"
+        :key="actionKey(action)"
+        class="mobile-header-action-item"
+        @click="handleClick(action, closeDrawer)"
+      >
+        <Icon v-if="action.icon" :icon="action.icon" :size="20" />
+        <span class="action-label">{{ action.title }}</span>
+        <el-badge
+          v-if="badgeCount(action) > 0"
+          :value="badgeCount(action)"
+          :max="99"
+          class="action-badge"
+        />
+      </div>
+    </div>
+
+    <!-- 移动端-会员菜单（语言、主题、用户） -->
+    <div class="mobile-menu-section mobile-header-actions-no-border">
       <HeaderActions :show-icon="true" mode="vertical" @menu-click="closeDrawer" />
     </div>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import Menu from './menu.vue'
 import Logo from './logo.vue'
 import HeaderActions from './header-actions.vue'
 import { Icon } from '~/components/icon'
+import { useHeaderActions } from '~/composables/header-actions'
+
+const { actions, actionKey, badgeCount, handleClick } = useHeaderActions()
 
 interface Props {
   modelValue: boolean
@@ -105,6 +128,40 @@ const closeDrawer = () => {
 
 .theme-toggle-mobile {
   padding: 10px 10px;
+}
+
+// 移动端头部动作菜单（类型3：铃铛等）
+.mobile-header-action-item {
+  display: flex;
+  align-items: center;
+
+  height: var(--el-menu-item-height);
+  padding: 0 var(--el-menu-base-level-padding);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+
+  &:hover {
+    background-color: var(--el-fill-color-light);
+  }
+
+  .action-label {
+    flex: 1;
+  }
+
+  .action-badge {
+    :deep(.el-badge__content) {
+      border: none;
+    }
+  }
+}
+
+// 移动端 HeaderActions 区域去掉分割线
+.mobile-header-actions-no-border {
+  :deep(.el-menu) {
+    border-top: none !important;
+  }
 }
 
 // 暗黑模式适配
