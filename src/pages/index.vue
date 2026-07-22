@@ -112,7 +112,7 @@ import Advertisement from '~/components/advertisement'
 <style lang="scss" scoped>
 .page-container {
     min-height: 100vh;
-    background: #ffffff;
+    background: var(--el-bg-color-page);
 }
 
 .hero-section {
@@ -128,6 +128,10 @@ import Advertisement from '~/components/advertisement'
         background-position: center center;
         background-repeat: no-repeat;
         background-size: cover;
+
+        html.dark & {
+            filter: brightness(0.6);
+        }
     }
 }
 
@@ -136,6 +140,11 @@ import Advertisement from '~/components/advertisement'
     background-size: 100%;
     background-repeat: no-repeat;
     padding: 60px 0 200px;
+
+    html.dark & {
+        background-image: none;
+        background: var(--el-bg-color-page);
+    }
 }
 
 .ad-section {
@@ -143,6 +152,11 @@ import Advertisement from '~/components/advertisement'
     background: linear-gradient(135deg, #f8f9ff 0%, #fff5f7 100%);
     position: relative;
     overflow: hidden;
+
+    // 暗黑模式下使用深色渐变
+    html.dark & {
+        background: linear-gradient(135deg, var(--el-bg-color-page) 0%, var(--el-bg-color) 100%);
+    }
 
     // 装饰性背景
     &::before {
@@ -193,14 +207,14 @@ import Advertisement from '~/components/advertisement'
     .section-title {
         font-size: 40px;
         font-weight: bold;
-        color: #666666;
+        color: var(--el-text-color-primary);
         margin-bottom: 20px;
         line-height: 1.2;
     }
     
     .section-subtitle {
         font-size: 16px;
-        color: #666666;
+        color: var(--el-text-color-secondary);
         line-height: 1.5;
     }
 }
@@ -213,16 +227,16 @@ import Advertisement from '~/components/advertisement'
 }
 
 .feature-card {
-    background: #ffffff;
+    background: var(--el-bg-color);
     border-radius: 12px;
     padding: 25px; // 调整内边距以适应更小的容器
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--el-box-shadow-light, 0 4px 20px rgba(0, 0, 0, 0.08));
     transition: all 0.3s ease;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--el-border-color-lighter);
     
     &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--el-box-shadow, 0 8px 30px rgba(0, 0, 0, 0.12));
     }
 }
 
@@ -247,14 +261,14 @@ import Advertisement from '~/components/advertisement'
     .feature-title {
         font-size: 18px; // 稍微缩小标题字体
         font-weight: bold;
-        color: #666666;
+        color: var(--el-text-color-primary);
         margin: 0;
     }
 }
 
 .feature-description {
     font-size: 13px; // 稍微缩小描述字体
-    color: #666666;
+    color: var(--el-text-color-regular);
     line-height: 20px;
     margin-bottom: 25px;
     min-height: 80px; // 调整最小高度
