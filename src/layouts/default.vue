@@ -35,7 +35,7 @@ const { calcHeight } = useLayoutScroll();
   .layout-header {
     position: relative;
     z-index: 1000;
-    background-color: var(--el-bg-color-page);
+    background-color: var(--el-bg-color);
     height: 60px;
     flex-shrink: 0;
   }

@@ -118,7 +118,7 @@ const toggleDarkMode = () => {
 
 <style scoped lang="scss">
 .ma-header {
-    background-color: var(--el-bg-color-page);
+    background-color: var(--el-bg-color);
     position: relative;
     z-index: 1000;
     width: 100%;
