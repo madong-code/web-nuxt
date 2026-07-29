@@ -34,6 +34,8 @@ const { calcHeight } = useLayoutScroll();
     background-color: var(--el-bg-color-page);
     height: 60px;
     flex-shrink: 0;
+    // 与 default 布局一致：清除 el-header 默认左右 padding，避免导航两侧多余边距
+    padding: 0;
   }
   
   .main-scrollbar {
@@ -54,7 +56,8 @@ const { calcHeight } = useLayoutScroll();
         flex-direction: column;
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden;
+        // 与 default 布局一致，避免全宽横幅被裁出两侧白边
+        overflow-x: visible;
         padding: 0;
       }
     }
@@ -97,6 +100,7 @@ const { calcHeight } = useLayoutScroll();
   z-index: 1000;
   left: 0;
   right: 0;
+  padding: 0;
   
   :deep(.header-logo) {
     span {
@@ -164,33 +168,6 @@ const { calcHeight } = useLayoutScroll();
   
   .page-index {
     background: url(~/assets/images/bg-dark.jpg) repeat;
-  }
-}
-
-/* 响应式适配 */
-@media screen and (max-width: 1024px) {
-  .layout-container {
-    .main-scrollbar {
-      .layout-main {
-        .layout-content {
-          padding: 0 15px;
-          --content-min-height: 400px;
-        }
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .layout-container {
-    .main-scrollbar {
-      .layout-main {
-        .layout-content {
-          padding: 0 10px;
-          --content-min-height: 300px;
-        }
-      }
-    }
   }
 }
 
