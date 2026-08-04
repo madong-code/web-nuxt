@@ -67,19 +67,17 @@ interface analyticsConfig {
  * 用于管理站点基础设置相关的配置选项
  */
 interface siteSettingConfig {
-    copyright: string,            // 版权信息
-    icp: string,                  // ICP备案号
-    icp_url: string,              // ICP备案链接
-    network_security: string,     // 公安备案号
-    network_security_url: string, // 公安备案链接
-
-    // SEO配置数组数据
-    seo_title: string,            // SEO标题
-    seo_keywords: string[],       // SEO关键词数组
-    seo_description: string,      // SEO描述
-    site_name: string,            // 站点名称
-    site_url: string,             // 站点URL
-    share_image: string,          // 分享图片
+    site_open: number,              // 是否开启站点
+    site_url: string,               // 站点URL
+    site_name: string,              // 站点名称
+    site_logo: string,              // 站点Logo
+    site_keywords: string,          // 关键词
+    site_description: string,       // 描述
+    site_copyright: string,         // 版权信息
+    site_record_no: string,         // ICP备案号
+    site_icp_url: string,           // ICP备案链接
+    site_network_security: string,  // 公安备案号
+    site_network_security_url: string, // 公安备案链接
 }
 
 /**
@@ -134,19 +132,17 @@ export const useConfigStore = defineStore('config', {
                 baidu_tongji_enabled: 0   // 默认不启用百度统计
             },
             siteSetting: {
-                copyright: '',           // 默认版权信息为空
-                icp: '',                 // 默认ICP备案号为空
-                icp_url: 'https://beian.miit.gov.cn/', // 默认ICP备案链接
-                network_security: '',    // 默认公安备案号为空
-                network_security_url: '', // 默认公安备案链接为空
-
-                // SEO配置默认值
-                seo_title: 'madong',               // 默认SEO标题
-                seo_keywords: ['madong', 'madong官网','madong极速开发框架','madong快速开发框架','madong-admin', 'madong工作流','madong后台管理系统','madong开源','码动','码动开源'], // 默认SEO关键词数组
-                seo_description: 'madong通用快速开发框架是一个基于Vue3 + TypeScript + ElementPlus的快速开发框架，提供了一个完整的后台管理系统模板', // 默认SEO描述
-                site_name: 'madong',                // 默认站点名称
-                site_url: '',                         // 默认站点URL（留空自动获取）
-                share_image: '/images/share-default.png' // 默认分享图片
+                site_open: 1,                 // 默认开启站点
+                site_url: '',                 // 默认站点URL（留空自动获取）
+                site_name: 'madong',          // 默认站点名称
+                site_logo: '',                // 默认站点Logo
+                site_keywords: '',            // 默认关键词为空
+                site_description: '',         // 默认描述为空
+                site_copyright: '',           // 默认版权信息为空
+                site_record_no: '',           // 默认ICP备案号为空
+                site_icp_url: 'https://beian.miit.gov.cn/', // 默认ICP备案链接
+                site_network_security: '',    // 默认公安备案号为空
+                site_network_security_url: '', // 默认公安备案链接为空
             }
         }
     },
@@ -167,7 +163,7 @@ export const useConfigStore = defineStore('config', {
                     paymentConfigRes
                 ] = await Promise.all([
                     getConfigByCode('web_login_config'),
-                    getConfigByCode('web_site_setting'),
+                    getConfigByCode('site_setting'),
                     getConfigByCode('web_search_config'),
                     getConfigByCode('web_analytics_config'),
                     getConfigByCode('web_payment_config')
@@ -189,22 +185,20 @@ export const useConfigStore = defineStore('config', {
                     }
                 }
 
-                // 更新站点设置
+                // 更新站点设置（对应后台 site_setting，分组 default）
                 const siteSetting = siteSettingRes?.data || siteSettingRes || {}
                 if (siteSetting && !Array.isArray(siteSetting)) {
-                    this.siteSetting.copyright = siteSetting.copyright || ''
-                    this.siteSetting.icp = siteSetting.icp || ''
-                    this.siteSetting.icp_url = siteSetting.icp_url || 'https://beian.miit.gov.cn/'
-                    this.siteSetting.network_security = siteSetting.network_security || ''
-                    this.siteSetting.network_security_url = siteSetting.network_security_url || ''
-
-                    // 更新SEO配置（支持数组形式）
-                    this.siteSetting.seo_title = siteSetting.seo_title || 'madong 通用快速框架'
-                    this.siteSetting.seo_keywords = siteSetting.seo_keywords || ['madong', 'madong-admin', 'ingenious', '工作流引擎']
-                    this.siteSetting.seo_description = siteSetting.seo_description || '专业开源服务平台'
-                    this.siteSetting.site_name = siteSetting.site_name || 'madong'
+                    this.siteSetting.site_open = siteSetting.site_open ?? 1
                     this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.share_image = siteSetting.share_image || '/images/share-default.png'
+                    this.siteSetting.site_name = siteSetting.site_name || 'madong'
+                    this.siteSetting.site_logo = siteSetting.site_logo || ''
+                    this.siteSetting.site_keywords = siteSetting.site_keywords || ''
+                    this.siteSetting.site_description = siteSetting.site_description || ''
+                    this.siteSetting.site_copyright = siteSetting.site_copyright || ''
+                    this.siteSetting.site_record_no = siteSetting.site_record_no || ''
+                    this.siteSetting.site_icp_url = siteSetting.site_icp_url || 'https://beian.miit.gov.cn/'
+                    this.siteSetting.site_network_security = siteSetting.site_network_security || ''
+                    this.siteSetting.site_network_security_url = siteSetting.site_network_security_url || ''
                 }
 
                 // 更新搜索配置

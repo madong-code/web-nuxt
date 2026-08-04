@@ -16,13 +16,19 @@ export interface ConfigItem {
     remark?: string
 }
 
-/** 站点设置配置 */
+/** 站点设置配置（对应后台 site_setting，分组 default，字段为 site_* 前缀） */
 export interface SiteConfig {
-    copyright: string
-    icp: string
-    icp_url: string
-    network_security: string
-    network_security_url: string
+    site_open: number
+    site_url: string
+    site_name: string
+    site_logo: string
+    site_keywords: string
+    site_description: string
+    site_copyright: string
+    site_record_no: string
+    site_icp_url: string
+    site_network_security: string
+    site_network_security_url: string
 }
 
 /** 协议类型 */
