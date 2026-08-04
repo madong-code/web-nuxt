@@ -8,7 +8,9 @@
         <div class="layout-content">
           <slot></slot>
         </div>
-        <layout-footer />
+        <div class="layout-footer">
+          <layout-footer />
+        </div>
       </div>
     </el-scrollbar>
   </el-container>

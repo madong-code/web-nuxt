@@ -18,7 +18,9 @@
                             </el-col>
                         </el-row>
                     </div>
-                    <Footer />
+                    <div class="layout-footer">
+                      <Footer />
+                    </div>
                 </div>
             </el-scrollbar>
         </el-container>
