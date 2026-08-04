@@ -55,11 +55,13 @@
 
 <script setup lang="ts">
 import type { Menus } from '~/stores/interface'
+import { MenuType } from '~/stores/interface'
 import { navigateTo } from 'nuxt/app'
 import { useSystemStore } from '~/stores/system'
 import { useMemberStore } from '~/stores/member'
+import { useMenuDialog } from '~/composables/menu-dialog'
 import { Icon } from '~/components/icon'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 
 interface Props {
     menus: Menus[]
@@ -156,6 +158,12 @@ const onClickMenu = (menu: Menus) => {
 
     // 先触发菜单点击事件，关闭弹窗
     emit('menu-click')
+
+    // dialog 类型：弹窗渲染组件，不跳转路由
+    if (menu.type === MenuType.DIALOG && menu.path) {
+        useMenuDialog().open(menu.path)
+        return
+    }
 
     if (systemStore.isExternalLink(menu)) {
         const target = systemStore.getTarget(menu)

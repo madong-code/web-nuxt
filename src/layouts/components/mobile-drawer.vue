@@ -42,6 +42,9 @@
     <div class="mobile-menu-section mobile-header-actions-no-border">
       <HeaderActions :show-icon="true" mode="vertical" @menu-click="closeDrawer" />
     </div>
+
+    <!-- 菜单弹窗容器（dialog 类型菜单的通用渲染器） -->
+    <MenuDialog />
   </el-drawer>
 </template>
 
@@ -50,6 +53,7 @@ import { computed } from 'vue'
 import Menu from './menu.vue'
 import Logo from './logo.vue'
 import HeaderActions from './header-actions.vue'
+import MenuDialog from './menu-dialog.vue'
 import { Icon } from '~/components/icon'
 import { useHeaderActions } from '~/composables/header-actions'
 

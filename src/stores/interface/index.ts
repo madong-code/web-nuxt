@@ -8,7 +8,8 @@ export enum MenuType {
     DIRECTORY = 'directory',
     PAGE = 'page',
     LINK = 'link',
-    IFRAME = 'iframe'
+    IFRAME = 'iframe',
+    DIALOG = 'dialog'
 }
 
 export enum MenuDisplayType {
@@ -64,8 +65,8 @@ export interface RouteMenuMeta {
     category?: '1' | '2' | '3'
     /** 不进菜单但路由可用 */
     hidden?: boolean
-    /** 菜单类型：directory（目录）/ page（内部页）/ link（外链） */
-    menuType?: 'directory' | 'page' | 'link'
+    /** 菜单类型：directory（目录）/ page（内部页）/ link（外链）/ dialog（弹窗渲染，不跳转路由） */
+    menuType?: 'directory' | 'page' | 'link' | 'dialog'
     [key: string]: any
 }
 

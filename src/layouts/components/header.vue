@@ -43,6 +43,9 @@
         @language-changed="handleLanguageChange"
         @logged-out="handleLogout"
     />
+
+    <!-- 菜单弹窗容器（dialog 类型菜单的通用渲染器） -->
+    <MenuDialog />
 </div>
 </template>
 
@@ -52,6 +55,7 @@ import Logo from './logo.vue'
 import MobileDrawer from './mobile-drawer.vue'
 import HeaderActions from './header-actions.vue'
 import HeaderActionsExtra from './header-actions-extra.vue'
+import MenuDialog from './menu-dialog.vue'
 import { Icon } from '~/components/icon'
 import { useSystemStore } from '~/stores/system'
 import { inject, ref, nextTick, onMounted, onUnmounted } from 'vue'

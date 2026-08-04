@@ -15,6 +15,7 @@
  */
 import type { Menus } from '~/stores/interface'
 import { MenuType, LinkTarget } from '~/stores/interface'
+import { registerMenuDialog } from '~/composables/menu-dialog'
 
 export interface FrontendMenuResult {
   nav: Menus[]
@@ -65,11 +66,16 @@ export function buildFrontendMenu(routes: any[]): FrontendMenuResult {
         code,
         ...meta,
       },
-      extra: {},
+      extra: meta.extra || {},
       children: [],
     }
 
     map.set(route.path, menu)
+
+    // dialog 类型：将 route.component 注册到弹窗组件表
+    if (meta.menuType === 'dialog' && typeof route.component === 'function') {
+      registerMenuDialog(route.path, route.component, { title, icon: meta.icon })
+    }
   })
 
   // 第二遍：组树（支持 meta.parent 多级）
