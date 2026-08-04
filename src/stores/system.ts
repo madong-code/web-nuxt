@@ -70,7 +70,7 @@ export const useSystemStore = defineStore('system', {
       lang: storedLang ?? 'zh-cn',
       tenantId: null,
       routingMode: (useRuntimeConfig().public.ROUTING_MODE === 'frontend' ? 'frontend' : 'backend') as RoutingMode,
-      navMaxVisibleItems: 5,
+      navMaxVisibleItems: 7,
       backendMenuCodes: [],
       headerActionVersion: 0,
       site: {
