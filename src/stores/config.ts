@@ -110,7 +110,7 @@ export const useConfigStore = defineStore('config', {
                 agreement_show: 0     // 默认不显示用户协议
             },
             language: {
-                is_enabled: 1,        // 默认不启用多语言支持
+                is_enabled: 0,        // 默认不启用多语言支持
                 default_lang: 'zh-cn', // 默认语言为中文
                 available_langs: ['zh-cn', 'en'] // 可用语言
             },
