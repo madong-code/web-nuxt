@@ -1,5 +1,6 @@
 // https://v3.nuxtjs.org/docs/directory-structure/nuxt.config
 import path from 'path'
+import fs from 'fs'
 // 提前加载 .env，确保 process.env 在 config 评估时可用
 import { config as loadEnv } from 'dotenv'
 loadEnv({ path: '.env' })
@@ -11,9 +12,35 @@ if (process.env.NODE_ENV === 'development') {
   loadEnv({ path: '.env.production' })
 }
 
+/**
+ * 收集各插件的 Nuxt 插件文件（可插拔）。
+ * 约定：`src/plugin/{name}/plugins/*.ts` 会被自动纳入 Nuxt 插件。
+ * 插件移除后目录不存在即自动跳过，核心功能不受影响。
+ */
+function collectPluginPlugins(): string[] {
+  const cwd = process.cwd()
+  const pluginRoot = path.resolve(cwd, 'src', 'plugin')
+  if (!fs.existsSync(pluginRoot)) return []
+  const result: string[] = []
+  for (const name of fs.readdirSync(pluginRoot)) {
+    const pluginsDir = path.join(pluginRoot, name, 'plugins')
+    if (!fs.existsSync(pluginsDir)) continue
+    for (const file of fs.readdirSync(pluginsDir)) {
+      if (file.endsWith('.ts')) {
+        // 返回相对项目根的路径，与 Nuxt srcDir 解析保持一致
+        result.push(path.relative(cwd, path.join(pluginsDir, file)))
+      }
+    }
+  }
+  return result
+}
+
 export default defineNuxtConfig({
   // 启用 src/ 目录布局（Nuxt 4 推荐）
   srcDir: 'src',
+
+  // 可插拔插件：合并各插件目录内的 Nuxt 插件
+  plugins: collectPluginPlugins(),
 
   modules: [
     '@nuxt/eslint',

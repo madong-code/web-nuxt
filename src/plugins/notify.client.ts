@@ -2,24 +2,22 @@ import { defineNuxtPlugin } from '#app'
 import { watch } from 'vue'
 import { useMemberStore } from '~/stores/member'
 import { useSystemStore } from '~/stores/system'
-import { useOfficialNotifyStore } from '~/plugin/portal/stores/notify'
+import { useNotifyStore } from '~/stores/notify'
 
 /**
- * 全局初始化「消息铃铛」未读徽章。
+ * 全局通知调度插件（核心层，可插拔）。
  *
- * 历史实现中该初始化仅在门户首页（/ 路由）的 index.vue 中调用，
- * 导致刷新非首页路由时首页组件不会挂载、init 不执行，header 铃铛的
- * setHeaderActionBadge 永不被触发，徽章因此只在 / 路由出现。
- *
- * 改为在应用级客户端插件中初始化，与具体页面解耦：
- * 任意路由刷新后，只要登录态与站点菜单就绪即可拉取未读数并设置徽章。
+ * 本插件不依赖任何具体插件：它只负责在「已登录 + 站点菜单就绪」时
+ * 调度通用 notify store 的 init / cleanup。通知数据源由各插件通过
+ * registerNotifyProvider() 接入；即使没有任何插件注册 provider，
+ * 本插件也能正常运行（空转不报错），因此移除 / 新增插件互不影响。
  */
 export default defineNuxtPlugin(() => {
     if (!import.meta.client) return
 
     const memberStore = useMemberStore()
     const systemStore = useSystemStore()
-    const notifyStore = useOfficialNotifyStore()
+    const notifyStore = useNotifyStore()
 
     // 防止同一生命周期内重复初始化（重复添加监听/定时器）
     let started = false
