@@ -339,6 +339,11 @@ onUnmounted(() => {
 .el-menu {
   border-bottom: none;
   border-right: none;
+  // 头部操作项（登录、主题开关、消息通知、语言切换）左右内边距统一缩小为 12px
+  :deep(> .el-menu-item),
+  :deep(> .el-sub-menu > .el-sub-menu__title) {
+    padding: 0 12px;
+  }
   .theme-switch.is-active,
   .language-switch.is-active {
     border-bottom: none;

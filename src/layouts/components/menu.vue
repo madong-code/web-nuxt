@@ -223,6 +223,14 @@ watch(
     padding-right: 0;
 }
 
+// 水平导航菜单：缩小菜单项左右内边距（默认过宽，单页最多六个菜单）
+.el-menu--horizontal {
+    :deep(> .el-menu-item),
+    :deep(> .el-sub-menu > .el-sub-menu__title) {
+        padding: 0 12px;
+    }
+}
+
 // "更多"溢出菜单样式
 .overflow-more-menu {
     :deep(.el-sub-menu__title) {
