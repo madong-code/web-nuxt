@@ -17,7 +17,7 @@
           <Icon
             :icon="action.icon || 'mdi:bell'"
             color="var(--el-text-color-primary)"
-            :size="20"
+            :size="18"
           />
         </div>
       </el-badge>
@@ -44,8 +44,8 @@ const { actions, actionKey, badgeCount, handleClick } = useHeaderActions()
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.25s ease;
