@@ -24,6 +24,13 @@ export interface FrontendMenuResult {
   headerActions: Menus[]
 }
 
+/** 前端路由合成的父目录默认图标（meta.parent 指向的路由不存在时使用） */
+const SYNTHETIC_DIRECTORY_ICONS: Record<string, string> = {
+  '/member/community': 'mdi:account-group',
+  '/member/account': 'mdi:cog-outline',
+  '/member/developer': 'mdi:code-braces',
+}
+
 function normalizePermission(perm: string | string[] | undefined): string[] {
   if (!perm) return []
   if (Array.isArray(perm)) return perm
@@ -94,7 +101,7 @@ export function buildFrontendMenu(routes: any[]): FrontendMenuResult {
           path: parentPath,
           title: parentTitle,
           url: parentPath,
-          icon: ({ '/member/community': 'mdi:account-group', '/member/account': 'mdi:cog-outline' } as Record<string, string>)[parentPath] || '',
+          icon: SYNTHETIC_DIRECTORY_ICONS[parentPath] || '',
           sort: menu.sort ?? 0,
           meta: {
             type: MenuType.DIRECTORY,

@@ -44,6 +44,22 @@ export default [
         }
     },
     {
+        path: "/member/third-party",
+        component: () => import('~/pages/member/components/third-party/index.vue'),
+        meta: {
+            title: '第三方绑定',
+            layout: 'member',
+            category: '2',
+            parent: '/member/account',
+            parentTitle: '账户设置',
+            order: 12,
+            icon: 'mdi:link-variant',
+            is_public: false,
+            is_no_auth: true,
+            code: 'member:third-party',
+        }
+    },
+    {
         path: "/member/password",
         component: () => import('~/pages/member/components/password/index.vue'),
         meta: {
@@ -52,7 +68,7 @@ export default [
             category: '2',
             parent: '/member/account',
             parentTitle: '账户设置',
-            order: 12,
+            order: 13,
             icon: 'mdi:key-variant',
             is_public: false,
             is_no_auth: true,
@@ -68,7 +84,7 @@ export default [
             category: '2',
             parent: '/member/account',
             parentTitle: '账户设置',
-            order: 13,
+            order: 14,
             icon: 'mdi:star-circle',
             is_public: false,
             is_no_auth: true,
@@ -84,7 +100,7 @@ export default [
             category: '2',
             parent: '/member/account',
             parentTitle: '账户设置',
-            order: 14,
+            order: 15,
             icon: 'mdi:wallet',
             is_public: false,
             is_no_auth: true,
@@ -100,7 +116,7 @@ export default [
             category: '2',
             parent: '/member/account',
             parentTitle: '账户设置',
-            order: 15,
+            order: 16,
             icon: 'mdi:calendar-check',
             is_public: false,
             is_no_auth: true,

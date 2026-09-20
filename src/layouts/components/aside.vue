@@ -1,101 +1,88 @@
 <template>
-    <el-aside class="member-sidebar">
-        <!-- 用户信息区域 -->
-        <div class="member-sidebar__user-info">
-            <div @click="routerPush('/member/profile')" class="member-sidebar__avatar-container">
-                <img class="member-sidebar__avatar" :src="getAvatarUrl(memberStore?.info?.avatar)" alt="" />
+    <nav class="member-nav">
+        <div class="member-nav__inner">
+            <!-- 一级：分组导航（B站空间式横向 Tab + 下划线指示） -->
+            <div class="member-nav__tabs">
+                <button
+                    v-for="group in visibleMenus"
+                    :key="group.id"
+                    type="button"
+                    class="member-nav__tab"
+                    :class="{ 'is-active': activeGroup && group.id === activeGroup.id }"
+                    @click="goGroup(group)"
+                >
+                    <Icon v-if="group.icon" :icon="group.icon" size="16" />
+                    <span>{{ group.title }}</span>
+                </button>
             </div>
-            <p class="member-sidebar__username">{{ memberStore?.info?.nickname }}</p>
+            <!-- 二级：当前分组的子页面胶囊 -->
+            <div v-if="activeGroupChildren.length" class="member-nav__pills">
+                <button
+                    v-for="menu in activeGroupChildren"
+                    :key="menu.id"
+                    type="button"
+                    class="member-nav__pill"
+                    :class="{ 'is-active': menu.path === route.path }"
+                    @click="go(menu)"
+                >
+                    <Icon v-if="menu.icon" :icon="menu.icon" size="14" />
+                    <span>{{ menu.title }}</span>
+                </button>
+            </div>
         </div>
-
-        <el-menu
-            class="member-sidebar__menu"
-            :default-active="activeMenu"
-            unique-opened
-        >
-            <div v-for="(item, idx) in systemStore.site.member_menu" :key="idx">
-                <el-sub-menu 
-                    v-if="item.children && item.children.length && checkMenuShow(item)"
-                    :index="item.id.toString()"
-                >
-                    <template #title>
-                        <Icon v-if="item.icon" :icon="item.icon" size="16" />
-                        <span>{{ item.title }}</span>
-                    </template>
-                    <div v-for="(menu, index) in item.children.filter(m => m)" :key="index">
-                        <el-menu-item 
-                            v-if="checkMenuShow(menu)"
-                            :index="menu.path"
-                            @click="routerPush(menu)"
-                        >
-                            <Icon v-if="menu.icon" :icon="menu.icon" size="16" />
-                            <span>{{ menu.title }}</span>
-                        </el-menu-item>
-                    </div>
-                </el-sub-menu>
-                
-                <el-menu-item 
-                    v-else-if="checkMenuShow(item)"
-                    :index="item.path"
-                    @click="routerPush(item)"
-                >
-                    <Icon v-if="item.icon" :icon="item.icon" size="16" />
-                    <span>{{ item.title }}</span>
-                </el-menu-item>
-            </div>
-        </el-menu>
-    </el-aside>
+    </nav>
 </template>
 
 <script setup lang="ts">
 import type { Menus } from '~/stores/interface'
-// 在组件顶部导入图片
-import defaultAvatar from '~/assets/images/default_avatar.png'
 import { useSystemStore } from '~/stores/system'
-import { useMemberStore } from '~/stores/member'
 import { useRoute, navigateTo } from 'nuxt/app'
 import { computed } from 'vue'
-import { fullUrl } from '~/utils/common'
 import { Icon } from '~/components/icon'
 
 const route = useRoute()
-const memberStore = useMemberStore()
 const systemStore = useSystemStore()
 
 const checkMenuShow = (menu: Menus): boolean => {
     if (!menu) {
         return false
     }
-    
+
     const permissions = menu.meta?.permissions
-    
+
     if (!permissions || permissions.length === 0) {
         return true
     }
-    
+
     const result = systemStore.checkMenuPermission(menu)
     return result
 }
 
-// 当前激活的菜单
-const activeMenu = computed(() => {
-    return route.path
+// 可见的顶级菜单（分组）
+const visibleMenus = computed<Menus[]>(() => {
+    return (systemStore.site.member_menu || []).filter((menu: Menus) => checkMenuShow(menu))
+})
+
+// 当前路由所在的分组
+const activeGroup = computed(() => {
+    const path = route.path
+    return visibleMenus.value.find(
+        (group: Menus) => (group.children || []).some((child: Menus) => child && checkMenuShow(child) && child.path === path)
+    )
+})
+
+// 当前分组的可见子页面
+const activeGroupChildren = computed<Menus[]>(() => {
+    if (!activeGroup.value) {
+        return []
+    }
+    return (activeGroup.value.children || []).filter((child: Menus) => child && checkMenuShow(child))
 })
 
 /**
- * 获取用户头像URL
+ * 菜单跳转（处理目录/外链/内部路由）
  */
-const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
-  if (!avatarUrl || avatarUrl.trim() === "") {
-    return defaultAvatar
-  }
-  return fullUrl(avatarUrl)
-}
-
-/**
- * 处理菜单点击
- */
-const onClickMenu = (menu: Menus) => {
+const go = (menu: Menus) => {
     if (systemStore.isDirectory(menu)) {
         return
     }
@@ -114,135 +101,131 @@ const onClickMenu = (menu: Menus) => {
 }
 
 /**
- * 菜单跳转
+ * 点击分组：跳转到其第一个可见子页面
  */
-const routerPush = (route: string | Menus) => {
-    if (typeof route === 'string') {
-        navigateTo(route)
-    } else {
-        onClickMenu(route)
-    }
+const goGroup = (group: Menus) => {
+    const children = (group.children || []).filter((child: Menus) => child && checkMenuShow(child))
+    go(children.length ? children[0] : group)
 }
 </script>
 
 <style scoped lang="scss">
-.member-sidebar {
-    width: 240px;
-    background-color: var(--ma-bg-color-overlay);
-    box-shadow: var(--el-box-shadow-light);
-    border-radius: 8px;
-    overflow: hidden;
+.member-nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: color-mix(in srgb, var(--el-bg-color) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    .member-nav__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
 }
 
-.member-sidebar__user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 20px;
-    border-bottom: 1px solid var(--el-border-color-light);
-}
-
-.member-sidebar__avatar-container {
-    position: relative;
-    cursor: pointer;
-    margin-bottom: 12px;
-}
-
-.member-sidebar__avatar {
-    display: block;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    background-color: black;
-}
-
-.member-sidebar__avatar-gender {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    height: 20px;
-    width: 20px;
+.member-nav__tabs {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: var(--ma-bg-color-overlay);
-    border-radius: 50%;
-    box-shadow: var(--el-box-shadow);
-}
+    gap: 30px;
 
-.member-sidebar__username {
-    text-align: center;
-    width: 100%;
-    margin: 8px 0 16px;
-    font-size: var(--el-font-size-large);
-    font-weight: 600;
-    color: var(--el-text-color-primary);
-}
+    .member-nav__tab {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 15px 2px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        color: var(--el-text-color-regular);
+        white-space: nowrap;
+        transition: color 0.2s ease;
 
-.member-sidebar__button-group {
-    display: flex;
-    gap: 8px;
-}
+        &:hover {
+            color: var(--el-text-color-primary);
+        }
 
-.member-sidebar__button {
-    font-size: var(--el-font-size-small);
-    height: 32px;
-    min-width: 80px;
-}
+        &.is-active {
+            color: var(--el-color-primary);
 
-.member-sidebar__menu {
-    border: none;
-    background: transparent;
-    
-    :deep(.el-menu-item),
-    :deep(.el-sub-menu__title) {
-        height: 44px;
-        line-height: 44px;
-        
-        .icon {
-            margin-right: 8px;
-            width: 16px;
-            height: 16px;
+            // 下划线指示条
+            &::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 2px;
+                border-radius: 2px 2px 0 0;
+                background-color: var(--el-color-primary);
+            }
         }
     }
-    
-    :deep(.el-menu-item.is-active) {
-        background-color: var(--el-color-primary-light-9);
-        color: var(--el-color-primary);
+}
+
+.member-nav__pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 2px 0 14px;
+
+    .member-nav__pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 32px;
+        padding: 0 14px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background-color: var(--el-fill-color);
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        color: var(--el-text-color-regular);
+        white-space: nowrap;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: var(--el-color-primary);
+            background-color: var(--el-color-primary-light-9);
+        }
+
+        &.is-active {
+            background-color: var(--el-color-primary-light-9);
+            border-color: var(--el-color-primary-light-7);
+            color: var(--el-color-primary);
+            font-weight: 600;
+        }
     }
 }
 
-/* 响应式设计 */
+/* 响应式：小屏横向滚动 */
 @media screen and (max-width: 991px) {
-    .member-sidebar {
-        width: 100%;
-        border-radius: 0;
-        box-shadow: none;
-    }
-    
-    .member-sidebar__user-info {
-        padding: 20px 16px;
-    }
-    
-    .member-sidebar__avatar {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .member-sidebar__button-group {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .member-sidebar__button {
-        width: 100%;
-    }
-}
+    .member-nav__tabs {
+        gap: 22px;
+        overflow-x: auto;
+        scrollbar-width: none;
 
-@media screen and (max-width: 768px) {
-    .member-sidebar {
-        display: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .member-nav__pills {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 }
 </style>

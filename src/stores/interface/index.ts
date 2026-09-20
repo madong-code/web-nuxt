@@ -49,7 +49,7 @@ export interface RouteMenuMeta {
     icon?: string
     /** 排序权重，越小越靠前 */
     order?: number
-    /** 权限码（如 portal:ask:publish），用于后端权限校验与菜单导出 */
+    /** 权限码（如 portal:forum:publish），用于后端权限校验与菜单导出 */
     code?: string
     /** 所需权限码（字符串或数组，支持 * 通配） */
     permission?: string | string[]
