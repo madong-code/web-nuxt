@@ -18,7 +18,7 @@
         <!-- 右侧功能区域 -->
         <div class="header-right">
             <client-only>
-                <!-- 头部动作菜单（category='3'）：消息铃铛等扩展入口，置于最左侧 -->
+                <!-- 头部动作菜单（category='3'）：消息铃铛等扩展入口 -->
                 <HeaderActionsExtra v-if="!isMobile" class="header-actions-extra-wrapper" />
                 <div v-if="isMobile" class="mobile-menu-wrapper">
                     <div
@@ -122,10 +122,27 @@ const toggleDarkMode = () => {
 
 <style scoped lang="scss">
 .ma-header {
-    background-color: var(--el-bg-color);
+    // flyenv 式毛玻璃导航：半透明背景 + 模糊，滚动后加深并显出底边框
     position: relative;
     z-index: 1000;
     width: 100%;
+    background: color-mix(in srgb, var(--el-bg-color) 68%, transparent);
+    backdrop-filter: blur(16px) saturate(1.6);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6);
+    transition: background-color 0.3s ease;
+
+    // 顶部品牌渐变线：以主色蓝为主，过渡紫/青，与 Hero 渐变呼应
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        height: 2px;
+        background: linear-gradient(90deg, var(--el-color-primary) 0%, #a855f7 55%, #22d3ee 100%);
+        z-index: 1;
+    }
 
     // 使用伪元素实现底部边框线，横跨整个视口宽度
     &::after {
@@ -136,8 +153,12 @@ const toggleDarkMode = () => {
         transform: translateX(-50%);
         width: 100vw;
         height: 1px;
-        background-color: transparent;
+        background-color: color-mix(in srgb, var(--el-border-color-lighter) 40%, transparent);
         transition: background-color 0.3s ease;
+    }
+
+    &.is-scrolled {
+        background: color-mix(in srgb, var(--el-bg-color) 92%, transparent);
     }
 
     &.is-scrolled::after {
@@ -172,12 +193,16 @@ const toggleDarkMode = () => {
         background: transparent;
         .el-menu-item,
         .el-sub-menu .el-sub-menu__title {
+            border-radius: 10px;
+            margin: 10px 2px;
+            transition: color 0.25s ease, background-color 0.25s ease;
             &.is-active {
                 color: var(--el-color-primary) !important;
+                background-color: var(--el-color-primary-light-9) !important;
             }
             &:hover {
-                background-color: transparent !important;
-                color: var(--el-menu-hover-text-color) !important;
+                background-color: var(--el-fill-color-light) !important;
+                color: var(--el-color-primary) !important;
             }
         }
     }
@@ -201,12 +226,16 @@ const toggleDarkMode = () => {
         background: transparent;
         .el-menu-item,
         .el-sub-menu .el-sub-menu__title {
+            border-radius: 10px;
+            margin: 10px 2px;
+            transition: color 0.25s ease, background-color 0.25s ease;
             &.is-active {
                 color: var(--el-color-primary) !important;
+                background-color: var(--el-color-primary-light-9) !important;
             }
             &:hover {
-                background-color: transparent !important;
-                color: var(--el-menu-hover-text-color) !important;
+                background-color: var(--el-fill-color-light) !important;
+                color: var(--el-color-primary) !important;
             }
         }
     }

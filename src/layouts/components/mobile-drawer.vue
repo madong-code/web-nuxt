@@ -5,7 +5,7 @@
     v-model="drawerVisible"
     :with-header="false"
     direction="ltr"
-    :size="'50%'"
+    :size="'75%'"
   >
     <div class="drawer-header">
       <Logo clickable show-text size="small" />
@@ -86,15 +86,16 @@ const closeDrawer = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 20px;
-  background-color: var(--el-color-info-light-9);
-  border-bottom: 1px solid var(--el-border-color-light);
-  
+  padding: 16px 20px;
+  background-color: transparent;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+
   .drawer-close {
     cursor: pointer;
     padding: 8px;
-    border-radius: 4px;
-    
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+
     &:hover {
       background-color: var(--el-fill-color-light);
     }
@@ -104,6 +105,12 @@ const closeDrawer = () => {
 .mobile-menu-section {
   flex: 1;
   overflow-y: auto;
+
+  // flyenv 式分组间距
+  & + .mobile-menu-section {
+    border-top: 1px solid var(--el-border-color-lighter);
+    padding-top: 8px;
+  }
 }
 
 .mobile-actions {
@@ -170,10 +177,6 @@ const closeDrawer = () => {
 
 // 暗黑模式适配
 @at-root html.dark {
-  .drawer-header {
-    background-color: var(--el-bg-color-page);
-  }
-  
   .mobile-actions {
     border-top-color: var(--el-border-color);
     background-color: var(--el-fill-color-dark);

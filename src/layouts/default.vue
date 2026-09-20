@@ -1,9 +1,9 @@
 <template>
   <el-container class="layout-container">
-    <el-header class="layout-header">
+    <el-header class="layout-header" height="64px">
       <layout-header />
     </el-header>
-    <el-scrollbar :style="calcHeight(60)" class="main-scrollbar" ref="mainScrollbarRef">
+    <el-scrollbar :style="calcHeight(64)" class="main-scrollbar" ref="mainScrollbarRef">
       <div class="layout-main">
         <div class="layout-content">
           <slot></slot>
@@ -37,8 +37,11 @@ const { calcHeight } = useLayoutScroll();
   .layout-header {
     position: relative;
     z-index: 1000;
-    background-color: var(--el-bg-color);
-    height: 60px;
+    // 背景交由内部 ma-header 毛玻璃实现，保持透明以透出页面内容
+    background-color: transparent;
+    height: var(--el-header-height);
+    // 清除 el-header 默认左右 padding，避免导航两侧露出默认底色
+    padding: 0;
     flex-shrink: 0;
   }
   
@@ -109,6 +112,7 @@ const { calcHeight } = useLayoutScroll();
   z-index: 1000;
   left: 0;
   right: 0;
+  padding: 0;
   
   :deep(.header-logo) {
     span {

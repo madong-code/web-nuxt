@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router'
  * 注意：仅封装 <script> 逻辑，布局文件仍保留在 layouts/ 目录，
  * Nuxt 4 按文件名自动注册，不会因调用本 composable 变成手动注册。
  */
-export function useLayoutScroll(headerHeight = 60) {
+export function useLayoutScroll(headerHeight = 64) {
   const route = useRoute()
   const mainScrollbarRef = useTemplateRef('mainScrollbarRef')
 
