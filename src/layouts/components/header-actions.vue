@@ -25,14 +25,14 @@
       </el-menu-item>
     </el-sub-menu>
 
-    <!-- 主题切换 -->
+    <!-- 主题设置（主题色 + 暗黑外观合并面板） -->
     <el-menu-item
       v-if="configStore.theme.is_enabled"
       index="theme-switch"
       class="theme-switch"
       :class="$attrs.mode + '-theme-switch'"
     >
-      <DarkSwitch />
+      <ThemePanel />
     </el-menu-item>
 
     <!-- 已登录用户场景 -->
@@ -42,12 +42,14 @@
     >
       <template #title>
         <div class="header-user-box">
-          <img
+          <el-avatar
             class="header-user-avatar"
             :class="$attrs.mode == 'vertical' ? 'icon-header-user-avatar' : ''"
-            :src="getAvatarUrl(memberStore?.info?.avatar || '')"
-            alt=""
-          />
+            :size="28"
+            :src="memberStore?.info?.avatar ? fullUrl(memberStore.info.avatar) : ''"
+          >
+            {{ (memberStore?.info?.nickname || memberStore?.info?.username || t("common.user")).charAt(0) }}
+          </el-avatar>
           {{ memberStore?.info?.nickname || t("common.user") }}
         </div>
       </template>
@@ -122,9 +124,8 @@
 import { computed, reactive, ref, nextTick, onMounted, onUnmounted, watch } from "vue";
 import { navigateTo } from "nuxt/app";
 import type { Menus } from "~/stores/interface";
-import defaultAvatar from "~/assets/images/default_avatar.png";
 import { fullUrl, getToken } from "~/utils/common";
-import DarkSwitch from "./dark-switch.vue";
+import ThemePanel from "./theme-panel.vue";
 import LoadingDialog from "@/components/login-dialog/index.vue";
 import { Icon } from '~/components/icon';
 import { ElMessage } from "element-plus";
@@ -177,16 +178,6 @@ const isMobile = ref(false);
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768;
-};
-
-/**
- * 获取用户头像URL
- */
-const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
-  if (!avatarUrl || avatarUrl.trim() === "") {
-    return defaultAvatar;
-  }
-  return fullUrl(avatarUrl);
 };
 
 const handleLogin = () => {
@@ -314,11 +305,8 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   .header-user-avatar {
-    width: 25px;
-    height: 25px;
-    margin-right: 4px;
-    border-radius: 50%;
-    background-color: black;
+    margin-right: 6px;
+    flex-shrink: 0;
   }
   .icon-header-user-avatar {
     margin-left: 4px;

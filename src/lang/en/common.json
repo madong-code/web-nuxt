@@ -13,6 +13,11 @@
   "cancel": "Cancel",
   "more": "More",
   "siteClose": "Site Closed",
+  "themeSetting": "Theme Settings",
+  "themeColor": "Theme Color",
+  "appearance": "Appearance",
+  "lightMode": "Light",
+  "darkMode": "Dark",
   "setting": {
     "config": {
       "common": {

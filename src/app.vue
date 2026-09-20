@@ -22,6 +22,7 @@ import en from 'element-plus/dist/locale/en.mjs'
 import type { Language } from 'element-plus/es/locale'
 import { onMounted, computed } from 'vue'
 import { initDark, getDark } from './utils/dark'
+import { initTheme } from './utils/theme'
 import { useHead } from 'nuxt/app'
 
 // modules import mark, Please do not remove.
@@ -53,5 +54,7 @@ onMounted(async () => {
   // 站点信息与语言初始化已移至 plugins/init-site.client.ts（确保在中间件之前完成）
   // 初始化暗黑模式（确保客户端与服务器端保持一致）
   initDark()
+  // 初始化主题色（恢复 cookie 中保存的自定义主题）
+  initTheme()
 })
 </script>

@@ -13,6 +13,11 @@
   "cancel": "取消",
   "more": "更多",
   "siteClose": "站点已关闭",
+  "themeSetting": "主题设置",
+  "themeColor": "主题色",
+  "appearance": "外观",
+  "lightMode": "亮色模式",
+  "darkMode": "暗黑模式",
   "setting": {
     "config": {
       "common": {

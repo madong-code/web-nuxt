@@ -1,5 +1,6 @@
 import { useCookie } from 'nuxt/app'
 import { ISDARK } from '~/stores/constant/keys'
+import { applyThemeColor, getThemeColor } from '~/utils/theme'
 
 export function getDark() {
   try {
@@ -31,6 +32,8 @@ export function updateHtmlDarkClass(val: boolean) {
     } else {
       htmlEl.classList.remove('dark')
     }
+    // 亮/暗外观下主题色色阶混合底色不同，切换后需重新注入
+    applyThemeColor(getThemeColor())
   } catch (error) {
     // 忽略错误
   }
