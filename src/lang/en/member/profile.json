@@ -16,8 +16,12 @@
   "bio_placeholder": "Please enter bio",
   "save_button": "Save",
   "reset_button": "Reset",
-  "avatar": "Avatar",
   "upload_avatar": "Upload Avatar",
+  "avatar_uploading": "Uploading…",
+  "avatar_type_error": "Only JPG, PNG, GIF and WEBP images are supported",
+  "avatar_size_error": "Image size cannot exceed 2MB",
+  "avatar_upload_success": "Avatar uploaded successfully",
+  "avatar_upload_failed": "Avatar upload failed",
   "update_success": "Profile saved successfully",
   "update_failed": "Save failed",
   "validation": {

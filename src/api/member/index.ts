@@ -193,14 +193,18 @@ export function updateMemberEmail(data: UpdateEmailParams): Promise<boolean> {
 }
 
 /**
- * 上传头像
+ * 上传头像结果
  */
-export function uploadAvatar(file: File): Promise<string> {
+export interface AvatarUploadResult {
+    url: string
+    filename: string
+}
+
+/**
+ * 上传头像（multipart/form-data，走 request.upload 原样透传 FormData）
+ */
+export function uploadAvatar(file: File): Promise<AvatarUploadResult> {
     const formData = new FormData()
     formData.append('file', file)
-    return request.post('/member/user/avatar', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    })
+    return request.upload('/member/user/avatar', formData)
 }
