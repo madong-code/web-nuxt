@@ -10,6 +10,7 @@
         </div>
       </div>
     </el-scrollbar>
+    <back-top />
   </el-container>
 </template>
 
