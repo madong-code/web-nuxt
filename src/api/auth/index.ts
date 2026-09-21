@@ -152,11 +152,13 @@ export function verifyEmail(data: {
 
 /**
  * 发送邮箱验证码
+ *
+ * 首次发送必须携带图形验证码；10 分钟窗口内重发可免图形验证（仅传 email）
  */
 export function sendEmailCode(data: {
     email: string
-    captcha_key: string
-    captcha_code: string
+    captcha_key?: string
+    captcha_code?: string
 }): Promise<boolean> {
     return request.post('/auth/send-email-code', data)
 }

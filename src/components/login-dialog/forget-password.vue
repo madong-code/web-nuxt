@@ -185,7 +185,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { forgetPassword, verifyEmail, sendEmailCode } from '~/api/auth'
+import { forgetPassword, sendEmailCode } from '~/api/auth'
 import type { FormInstance } from 'element-plus'
 import { Icon } from '~/components/icon'
 import { t } from '~/composables/lang'
@@ -286,9 +286,9 @@ const step2Rules = computed(() => ({
   }
 }) as any)
 
-// 发送邮箱验证码
+// 重发邮箱验证码（第二步：图形验证已在第一步通过，窗口内免图形验证重发）
 const handleSendEmailCode = async () => {
-  if (!step1Data.email || !validate.email(step1Data.email)) {
+  if (!savedEmail.value || !validate.email(savedEmail.value)) {
     ElMessage.error(t('auth.forget.password.email_invalid'))
     return
   }
@@ -296,11 +296,7 @@ const handleSendEmailCode = async () => {
   if (emailCodeCountdown.value > 0) return
 
   try {
-    await sendEmailCode({
-      email: step1Data.email,
-      captcha_key: step1Data.captcha_key,
-      captcha_code: step1Data.captcha_code
-    })
+    await sendEmailCode({ email: savedEmail.value })
 
     ElMessage.success(t('auth.forget.password.code_sent'))
     emailCodeCountdown.value = 60
@@ -312,7 +308,7 @@ const handleSendEmailCode = async () => {
       }
     }, 1000)
   } catch (error) {
-    captcha.refresh()
+    // 第二步无图形验证码输入框，无需刷新
   }
 }
 
@@ -359,7 +355,7 @@ const handleNextStep = async () => {
   })
 }
 
-// 上一步
+// 上一步（旧图形验证码已被消费，刷新以便再次进入第二步）
 const handlePrevStep = () => {
   currentStep.value = 1
   verificationSent.value = false
@@ -367,6 +363,7 @@ const handlePrevStep = () => {
     clearInterval(emailCodeTimer)
     emailCodeCountdown.value = 0
   }
+  captcha.refresh()
 }
 
 // 重置密码
