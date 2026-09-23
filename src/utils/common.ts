@@ -4,6 +4,7 @@ import type { CSSProperties } from 'vue'
 import { useMemberStore } from '~/stores/member'
 import { useConfigStore } from '~/stores/config'
 import { globals } from '~/stores/globals'
+import { resolveSignedUrl } from '~/utils/private-storage'
 import { useNuxtApp } from 'nuxt/app'
 
 
@@ -47,6 +48,11 @@ export const fullUrl = (relativeUrl: string, domain = '') => {
         domain = configStore?.cdn_url ? configStore?.cdn_url : import.meta.env.NUXT_PUBLIC_API_BASE_URL
     }
     if (!relativeUrl) return domain
+
+    // 私有空间：资源 key 交后端签发临时直链，前端不做任何拼接
+    // （未就绪时返回 null，先按下方公开逻辑回落，拿到签名地址后重新渲染）
+    const signedUrl = resolveSignedUrl(relativeUrl)
+    if (signedUrl) return signedUrl
 
     const regUrl = new RegExp(/^http(s)?:\/\//)
     const regexImg = new RegExp(/^((?:[a-z]+:)?\/\/|data:image\/)(.*)/i)

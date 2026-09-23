@@ -78,6 +78,11 @@ interface siteSettingConfig {
     site_icp_url: string,           // ICP备案链接
     site_network_security: string,  // 公安备案号
     site_network_security_url: string, // 公安备案链接
+    upload_mode?: string,           // 当前存储模式（local/qiniu/oss/cos/s3，由后端追加）
+    cdn_url?: string,               // 资源 CDN 域名（本地模式为空串，由后端追加）
+    static_url?: string,            // 静态资源 base URL（与 cdn_url 等价，由后端追加）
+    is_private?: boolean,      // 是否私有空间（非公开读）：需按 key 调 /file/access-urls 换取地址
+    storage_prefix: string,         // 存储根目录名（用于区分存储资源与站点自身静态资源）
 }
 
 /**
@@ -91,7 +96,11 @@ interface Config {
     payment: paymentConfig, // 支付配置模块
     search: searchConfig,   // 搜索配置模块
     analytics: analyticsConfig, // 统计分析配置模块
-    siteSetting: siteSettingConfig // 站点设置配置模块
+    siteSetting: siteSettingConfig, // 站点设置配置模块
+    upload_mode: string,    // 当前存储模式：local 时资源与站点同域，其余用 cdn_url 前缀
+    cdn_url: string,        // 资源 CDN 域名（fullUrl 拼接相对路径用，空串表示同域）
+    is_private: boolean,      // 是否私有空间（非公开读）
+    storage_prefix: string    // 存储根目录名
 }
 
 /**
@@ -143,7 +152,16 @@ export const useConfigStore = defineStore('config', {
                 site_icp_url: 'https://beian.miit.gov.cn/', // 默认ICP备案链接
                 site_network_security: '',    // 默认公安备案号为空
                 site_network_security_url: '', // 默认公安备案链接为空
-            }
+                upload_mode: 'local',         // 默认本地存储（资源与站点同域）
+                cdn_url: '',                  // 默认无 CDN，fullUrl 回落 API 域名
+                static_url: '',
+                is_private: false,            // 默认公开空间（无需换取签名地址）
+                storage_prefix: ''
+            },
+            upload_mode: 'local',  // 默认本地存储
+            cdn_url: '',           // 默认无 CDN，fullUrl 回落 API 域名
+            is_private: false,     // 默认公开空间
+            storage_prefix: ''      // 默认无存储根目录
         }
     },
     actions: {
@@ -199,6 +217,17 @@ export const useConfigStore = defineStore('config', {
                     this.siteSetting.site_icp_url = siteSetting.site_icp_url || 'https://beian.miit.gov.cn/'
                     this.siteSetting.site_network_security = siteSetting.site_network_security || ''
                     this.siteSetting.site_network_security_url = siteSetting.site_network_security_url || ''
+                    // 存储模式与 CDN 域名（后端在 site_setting 响应中追加）
+                    // 云存储模式下 fullUrl 必须用 CDN 域名拼资源地址，否则会请求站点域名下的本地文件而 404
+                    this.siteSetting.upload_mode = siteSetting.upload_mode || 'local'
+                    this.siteSetting.cdn_url = siteSetting.cdn_url || ''
+                    this.siteSetting.static_url = siteSetting.static_url || ''
+                    this.siteSetting.is_private = siteSetting.is_private === true
+                    this.siteSetting.storage_prefix = siteSetting.storage_prefix || ''
+                    this.upload_mode = this.siteSetting.upload_mode
+                    this.cdn_url = this.siteSetting.cdn_url
+                    this.is_private = this.siteSetting.is_private
+                    this.storage_prefix = this.siteSetting.storage_prefix
                 }
 
                 // 更新搜索配置
