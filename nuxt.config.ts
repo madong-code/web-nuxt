@@ -152,5 +152,4 @@ export default defineNuxtConfig({
     importStyle: 'scss',
     themes: ['dark'],
   },
-  ssr: false,
 })
