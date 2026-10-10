@@ -1,4 +1,21 @@
-# Madong-Nuxt
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/madong-code/madong-admin/main/public/logo.png" alt="Madong Logo" width="120" />
+
+# Madong Nuxt Web
+
+基于 Nuxt 4.x 构建的前台 Web 应用
+
+[![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82?logo=nuxt&logoColor=white)](https://nuxt.com)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Element Plus](https://img.shields.io/badge/Element%20Plus-409EFF?logo=element&logoColor=white)](https://element-plus.org)
+[![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=1B1B18)](https://pinia.vuejs.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+
+**中文** | [English](./README.en.md)
+
+</div>
 
 ## 项目介绍
 
