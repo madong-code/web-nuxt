@@ -97,7 +97,7 @@
         </el-menu-item>
       </template>
 
-      <el-menu-item @click="$emit('menu-click'); memberStore.logout()" index="user-logout">
+      <el-menu-item @click="$emit('menu-click'); memberStore.logout(logoutTarget)" index="user-logout">
         <Icon
           v-if="showIcon"
           icon="ant-design:logout-outlined"
@@ -122,7 +122,7 @@
 </template>
 <script setup lang="ts">
 import { computed, reactive, ref, nextTick, onMounted, onUnmounted, watch } from "vue";
-import { navigateTo } from "nuxt/app";
+import { navigateTo, useRoute } from "nuxt/app";
 import type { Menus } from "~/stores/interface";
 import { fullUrl, getToken } from "~/utils/common";
 import ThemePanel from "./theme-panel.vue";
@@ -137,6 +137,7 @@ import { t } from "~/composables/lang";
 const memberStore = useMemberStore();
 const systemStore = useSystemStore();
 const configStore = useConfigStore();
+const route = useRoute();
 
 
 
@@ -156,6 +157,11 @@ const availableLanguages = computed(() => {
 });
 const currentLanguage = computed(() => {
   return systemStore.lang;
+});
+// 退出登录后返回的页面：取当前路由首段作为所属应用首页（如 /cms/article/1 -> /cms）
+const logoutTarget = computed(() => {
+  const seg = route.path.split("/").filter(Boolean)[0];
+  return seg ? "/" + seg : "/";
 });
 
 interface Props {

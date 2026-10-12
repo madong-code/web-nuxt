@@ -60,7 +60,7 @@ export const useMemberStore = defineStore('member', {
         async getMemberInfoSilent() {
             await this.fetchMemberProfile()
         },
-        logout() {
+        logout(target: string = '/') {
             this.token = ''
             this.refreshToken = ''
             this.info = null
@@ -68,8 +68,8 @@ export const useMemberStore = defineStore('member', {
             this.loginPopup = false
             // 登出后刷新菜单（混合/后端模式下后端只返回公开菜单）
             this.refreshMenuAfterLogin()
-            // 跳转到首页
-            navigateTo('/')
+            // 跳转到指定页面（默认首页）
+            navigateTo(target)
         },
         logOpen() {
             this.loginPopup = true
