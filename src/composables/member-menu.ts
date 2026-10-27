@@ -107,7 +107,7 @@ export function useMemberBadges() {
         if (!url) return null
         if (/(^|[?&])tab=notify(&|$)/.test(url)) return '/notify'
         if (/(^|[?&])tab=messages(&|$)/.test(url)) return '/messages'
-        const clean = url.split('?')[0]
+        const clean = url.split('?')[0] ?? ''
         const keys = [
             ...notifyStore.getProviders().map(p => p.key),
             ...Object.keys(notifyStore.providerCounts),

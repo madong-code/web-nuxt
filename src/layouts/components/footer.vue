@@ -100,6 +100,7 @@
 import { ElTooltip } from 'element-plus'
 
 import { t } from '~/composables/lang'
+const $t = t
 import { getLinks, type WebSiteConfig } from '~/api/site'
 import FriendlinkApplyDialog from '~/components/friendlink/apply-dialog.vue'
 import { useSiteConfig } from '~/composables/site-config'

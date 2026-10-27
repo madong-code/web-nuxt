@@ -131,7 +131,7 @@ export const arrayFullUrl = (relativeUrls: string | string[], domain = '') => {
         relativeUrls = relativeUrls == '' ? [] : relativeUrls.split(',')
     }
     for (const key in relativeUrls) {
-        relativeUrls[key] = fullUrl(relativeUrls[key], domain)
+        relativeUrls[key] = fullUrl(relativeUrls[key] as string, domain)
     }
     return relativeUrls
 }
@@ -270,7 +270,8 @@ export const timeFormat = (dateTime: string | number | null = null, fmt = 'yyyy-
     for (const k in opt) {
         ret = new RegExp('(' + k + ')').exec(fmt)
         if (ret) {
-            fmt = fmt.replace(ret[1], ret[1].length == 1 ? opt[k] : padStart(opt[k], ret[1].length, '0'))
+            const matched = ret[1] as string
+            fmt = fmt.replace(matched, matched.length == 1 ? (opt[k] as string) : padStart(opt[k] as string, matched.length, '0'))
         }
     }
     return fmt

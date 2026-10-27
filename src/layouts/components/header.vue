@@ -271,6 +271,7 @@ import { useConfigStore } from '~/stores/config'
 import { useSystemStore } from '~/stores/system'
 import { useHeaderActions, isMergedUnreadAction } from '~/composables/header-actions'
 import { t } from '~/composables/lang'
+const $t = t
 import { Icon } from '~/components/icon'
 import LoginDialog from '~/components/login-dialog/index.vue'
 import HeaderMenu from './menu.vue'

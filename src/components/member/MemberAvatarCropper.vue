@@ -103,6 +103,7 @@
 </template>
 
 <script setup lang="ts">
+import { t } from '~/composables/lang'
 /**
  * 会员头像裁剪上传（框架层组件，个人中心核心依赖，不依赖任何第三方插件）：
  * - 完整流程：图片选择（点击/拖拽/外部唤起）→ 预览 → 裁剪（拖动平移 + 滚轮/滑块缩放）

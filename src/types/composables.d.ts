@@ -16,4 +16,12 @@ declare global {
   function useSendSms(): any;
 }
 
+// 模板中可直接使用 t() / $t()（auto-import 与 vue-i18n globalInjection）
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    t: (message: string, ...args: any[]) => string;
+    $t: (message: string, ...args: any[]) => string;
+  }
+}
+
 export {};

@@ -88,6 +88,8 @@ export interface ThirdPartyBinding {
 export interface QrCodeLoginInfo {
     scene_id: string
     qrcode_url: string
+    /** 二维码图片地址（后端返回字段名） */
+    qr_code: string
     expires_in: number
 }
 

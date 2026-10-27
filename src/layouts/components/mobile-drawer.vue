@@ -157,6 +157,7 @@
 <script setup lang="ts">
 import { Newspaper, LogOut, CircleUser, X, Languages, ChevronDown } from 'lucide-vue-next'
 import { t } from '~/composables/lang'
+const $t = t
 import SearchBar from './search-bar.vue'
 import MobileDrawerItem from './mobile-drawer-item.vue'
 import ThemePanel from './theme-panel.vue'

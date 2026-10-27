@@ -94,6 +94,9 @@
 </template>
 
 <script lang="ts" setup>
+import { t } from '~/composables/lang'
+
+const $t = t
 /**
  * 框架统一搜索页（/search，聚合模式）：
  * - 关键词经 URL query（?q=）承载，回车/按钮触发，可分享可回退

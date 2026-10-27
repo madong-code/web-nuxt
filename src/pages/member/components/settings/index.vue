@@ -98,6 +98,8 @@
 </template>
 
 <script setup lang="ts">
+
+import { t } from '~/composables/lang'
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
@@ -237,7 +239,7 @@ const updateEmail = async () => {
   if (!emailFormRef.value) return;
 
   try {
-    await updateMemberEmail(emailForm);
+    await updateMemberEmail({ email: emailForm.email, verify_code: emailForm.code });
     ElMessage.success(t('member.settings.email_update_success'));
     showEmailDialog.value = false;
     await loadMemberInfo();

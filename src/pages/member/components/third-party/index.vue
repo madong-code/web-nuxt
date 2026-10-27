@@ -80,7 +80,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts">
+import { t } from '~/composables/lang'
 import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Loading, Warning, SuccessFilled } from "@element-plus/icons-vue";

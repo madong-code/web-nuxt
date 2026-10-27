@@ -72,6 +72,7 @@
 import { computed, ref } from 'vue'
 import { Icon } from '~/components/icon'
 import { t } from '~/composables/lang'
+const $t = t
 import { THEME_PRESETS, getThemeColor, setThemeColor } from '~/utils/theme'
 import { getDark, toggleDarkWithTransition } from '~/utils/dark'
 

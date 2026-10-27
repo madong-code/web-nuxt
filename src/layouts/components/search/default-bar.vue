@@ -17,6 +17,9 @@
 </template>
 
 <script setup lang="ts">
+import { t } from '~/composables/lang'
+
+const $t = t
 /**
  * 框架默认搜索触发钮（无插件注册时的兜底实现）：
  * - 与 portal 插件触发钮同 props 契约（embedded / showText / showShortcut），

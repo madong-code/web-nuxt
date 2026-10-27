@@ -75,6 +75,9 @@
 </template>
 
 <script setup lang="ts">
+import { t } from '~/composables/lang'
+
+const $t = t
 /**
  * 框架默认搜索面板（聚合模式统一实现）：
  * - 悬浮遮罩面板：输入 300ms 防抖 → useSearchStore().searchAll 聚合全部已注册

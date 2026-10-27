@@ -173,7 +173,7 @@ export const useConfigStore = defineStore('config', {
                 ])
 
                 // 更新登录配置
-                const loginConfig = loginConfigRes?.data || loginConfigRes || {}
+                const loginConfig = (loginConfigRes as any)?.data || loginConfigRes || {}
                 if (loginConfig && !Array.isArray(loginConfig)) {
                     this.login.is_username = parseInt(loginConfig.is_username)
                     this.login.is_mobile = parseInt(loginConfig.is_mobile)
@@ -189,7 +189,7 @@ export const useConfigStore = defineStore('config', {
                 }
 
                 // 更新站点设置（对应后台「网站设置→站点设置」，web_site_setting 行，分组 default）
-                const siteSetting = siteSettingRes?.data || siteSettingRes || {}
+                const siteSetting = (siteSettingRes as any)?.data || siteSettingRes || {}
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
                     this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
@@ -209,14 +209,14 @@ export const useConfigStore = defineStore('config', {
                     this.siteSetting.static_url = siteSetting.static_url || ''
                     this.siteSetting.is_private = siteSetting.is_private === true
                     this.siteSetting.storage_prefix = siteSetting.storage_prefix || ''
-                    this.upload_mode = this.siteSetting.upload_mode
-                    this.cdn_url = this.siteSetting.cdn_url
+                    this.upload_mode = this.siteSetting.upload_mode || 'local'
+                    this.cdn_url = this.siteSetting.cdn_url || ''
                     this.is_private = this.siteSetting.is_private
                     this.storage_prefix = this.siteSetting.storage_prefix
                 }
 
                 // 更新搜索配置
-                const searchConfig = searchConfigRes?.data || searchConfigRes || {}
+                const searchConfig = (searchConfigRes as any)?.data || searchConfigRes || {}
                 if (searchConfig && !Array.isArray(searchConfig)) {
                     this.search.keyword = searchConfig.keyword || ''
                     this.search.keyword_enabled = parseInt(searchConfig.keyword_enabled)
@@ -226,7 +226,7 @@ export const useConfigStore = defineStore('config', {
                 // layouts unhead 唯一注入，web_analytics_config 与 BaiduAnalytics 组件已下线
 
                 // 更新支付配置
-                const paymentConfig = paymentConfigRes?.data || paymentConfigRes || {}
+                const paymentConfig = (paymentConfigRes as any)?.data || paymentConfigRes || {}
                 if (paymentConfig && !Array.isArray(paymentConfig)) {
                     this.payment.is_wechat_enabled = parseInt(paymentConfig.is_wechat_enabled)
                     this.payment.is_alipay_enabled = parseInt(paymentConfig.is_alipay_enabled)

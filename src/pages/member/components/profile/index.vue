@@ -58,7 +58,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts">
+import { t } from '~/composables/lang'
 import { ref, reactive, onMounted } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";

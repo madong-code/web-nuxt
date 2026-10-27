@@ -75,7 +75,7 @@ function getRuntimeConfig(): RuntimeConfig {
     if (import.meta.server) {
         const nuxtApp = tryUseNuxtApp()
         if (nuxtApp) {
-            serverRuntimeConfigCache = useRuntimeConfig(nuxtApp)
+            serverRuntimeConfigCache = (useRuntimeConfig as any)(nuxtApp) as RuntimeConfig
             return serverRuntimeConfigCache
         }
         if (serverRuntimeConfigCache) return serverRuntimeConfigCache
@@ -87,7 +87,7 @@ function getRuntimeConfig(): RuntimeConfig {
     // 最终兜底按 location 推导（客户端必然存在 window）。
     const nuxtApp = tryUseNuxtApp()
     if (nuxtApp) {
-        clientRuntimeConfigCache = useRuntimeConfig(nuxtApp)
+        clientRuntimeConfigCache = (useRuntimeConfig as any)(nuxtApp) as RuntimeConfig
         return clientRuntimeConfigCache
     }
     if (clientRuntimeConfigCache) return clientRuntimeConfigCache
@@ -102,7 +102,7 @@ function getRuntimeConfig(): RuntimeConfig {
 export function warmRequestRuntimeConfig(): void {
     const nuxtApp = tryUseNuxtApp()
     if (!nuxtApp) return
-    const cfg = useRuntimeConfig(nuxtApp)
+    const cfg = (useRuntimeConfig as any)(nuxtApp)
     if (import.meta.server) serverRuntimeConfigCache = cfg
     else clientRuntimeConfigCache = cfg
 }
@@ -247,8 +247,8 @@ class Http {
           // 注入 X-Tenant-Id
           const tenantId = this.resolveTenantId(config)
           const requestHeaders: Record<string, string> = {
-            ...this.options.headers,
-            ...(config.headers || {}),
+            ...(this.options.headers as Record<string, string>),
+            ...((config.headers || {}) as Record<string, string>),
           }
           if (tenantId) {
             requestHeaders['X-Tenant-Id'] = tenantId
@@ -427,7 +427,7 @@ class Http {
             // 对于blob类型，直接读取blob并返回
             try {
               const blob = await response.blob()
-              resolve(blob)
+              resolve(blob as any)
               return
             } catch (error) {
               console.error('[request] Error reading blob:', error)
@@ -940,5 +940,5 @@ export async function postSSE(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
-  })
+  } as any)
 }

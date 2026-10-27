@@ -184,11 +184,12 @@ export const useSearchStore = defineStore('search', {
       const groups: SearchSourceGroup[] = []
       const flat: SearchResultItem[] = []
       settled.forEach((r, i) => {
+        const source = sources[i] as SearchSource
         if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-          groups.push({ source: sources[i], items: r.value })
+          groups.push({ source, items: r.value })
           flat.push(...r.value)
         } else {
-          groups.push({ source: sources[i], items: [], error: r.status === 'rejected' ? r.reason : undefined })
+          groups.push({ source, items: [], error: r.status === 'rejected' ? r.reason : undefined })
         }
       })
       return { groups, flat }

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+
+import { t } from '~/composables/lang'
 /**
  * 个人中心统一外壳（框架层组件，/member/* 子页共用）：
  * - 未登录：引导卡（立即登录）
@@ -47,7 +49,7 @@ const groupTabs = computed<NavMenuItem[]>(() => memberItems.value.filter((m) => 
 /** 行1 激活分组：目录子树前缀包含当前路径优先，无命中回落第一个分组 */
 const activeGroup = computed<NavMenuItem | null>(() => {
     if (!groupTabs.value.length) return null
-    return groupTabs.value.find((m) => memberGroupMatches(m, route.path)) ?? groupTabs.value[0]
+    return groupTabs.value.find((m) => memberGroupMatches(m, route.path)) ?? groupTabs.value[0] ?? null
 })
 
 /** 行2 子项 pill：激活分组的 children（两层级菜单，仅取带 url 的叶子） */
