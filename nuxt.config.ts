@@ -36,8 +36,24 @@ function collectPluginPlugins(): string[] {
 }
 
 export default defineNuxtConfig({
+  // 关闭 SSR，改为纯客户端渲染（SPA）
+  // ssr: false,
+
   // 启用 src/ 目录布局（Nuxt 4 推荐）
   srcDir: 'src',
+
+  // Nuxt 内部 watcher 改用轮询：默认 granular watcher 逐目录建 chokidar 实例，
+  // fs-watch 会持久持有插件模板文件句柄，导致在线卸载/重装删除被拒（Windows）。
+  // 轮询不持句柄；选项经 nuxt 内部 watchers.chokidar 透传（ignored 被内部覆盖不可用，
+  // 也不得用顶层 ignore —— 那会把插件 SFC 排除出编译转换链，#components 解析直接 500）。
+  // Vite 侧仍由下方 vite.server.watch.ignored 排除插件目录。
+  watchers: {
+    chokidar: {
+      usePolling: true,
+      interval: 1500,
+      binaryInterval: 3000,
+    },
+  },
 
   // 可插拔插件：合并各插件目录内的 Nuxt 插件
   plugins: collectPluginPlugins(),
@@ -67,6 +83,8 @@ export default defineNuxtConfig({
 
   // 运行时配置（对应 .env / .env.development / .env.production）
   runtimeConfig: {
+    // 服务端渲染时 API 内网地址（相对 /api 在 Node 端无法解析，必须为绝对地址）
+    apiServerBase: process.env.NUXT_API_SERVER_BASE || 'http://127.0.0.1:8501/api',
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
       REQUEST_HEADER_CHANNEL_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_CHANNEL_KEY || 'pc',
@@ -115,7 +133,10 @@ export default defineNuxtConfig({
     },
     prerender: {
       crawlLinks: false,
-      routes: ['/'],
+      // 不预渲染任何路由：预渲染会把构建期数据固化进首页 HTML，
+      // 导致「根路由永远正常、其他路由依赖运行时 SSR」的渲染不一致假象，
+      // 且首页数据陈旧。所有路由统一运行时 SSR + 客户端自愈。
+      routes: [],
       ignore: ['/hi'],
     },
   },
@@ -129,14 +150,19 @@ export default defineNuxtConfig({
       },
     },
     server: {
+      // 排除插件部署目录（与 admin 的 vite watch.ignored 同约定）：
+      // 插件模板是安装器部署产物，watcher 持句柄会让在线安装/卸载的目录复制与整目录改名失败
+      watch: {
+        // ignored: ['**/src/plugin/**'],
+      },
       proxy: {
         "/api": {
-          target: "http://127.0.0.1:8500",
+          target: "http://127.0.0.1:8501",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "/api"),
         },
         "/upload": {
-          target: "http://127.0.0.1:8500",
+          target: "http://127.0.0.1:8501",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/upload/, "/upload"),
         },
