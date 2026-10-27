@@ -16,6 +16,14 @@
   "bio_placeholder": "请输入个人简介",
   "save_button": "保存修改",
   "reset_button": "重置",
+  "avatar": "头像",
+  "change_avatar": "更换头像",
+  "avatar_crop_title": "裁剪头像",
+  "avatar_crop_tip": "拖动调整位置，滚轮或滑块缩放",
+  "avatar_drop_tip": "点击或拖拽图片到此处",
+  "avatar_crop_confirm": "确认并上传",
+  "avatar_reselect": "重新选择",
+  "avatar_crop_failed": "图片读取失败，请更换图片",
   "upload_avatar": "上传头像",
   "avatar_uploading": "上传中…",
   "avatar_type_error": "只支持 JPG、PNG、GIF、WEBP 格式的图片",
@@ -26,6 +34,9 @@
   "update_failed": "保存失败",
   "validation": {
     "nickname_required": "请输入昵称",
+    "nickname_max": "昵称不能超过 50 个字符",
+    "bio_max": "个人简介不能超过 500 个字符",
     "email_format": "请输入正确的邮箱地址"
-  }
+  },
+  "refresh_failed": "保存成功，但资料刷新失败，请刷新页面查看"
 }

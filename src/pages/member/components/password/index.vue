@@ -154,22 +154,22 @@ const resetForm = () => {
 }
 
 :deep(.el-button--primary) {
-  background-color: #409eff;
-  border-color: #409eff;
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
 }
 
 :deep(.el-button--primary:hover) {
-  background-color: #66b1ff;
-  border-color: #66b1ff;
+  background-color: var(--el-color-primary-light-3);
+  border-color: var(--el-color-primary-light-3);
 }
 
 :deep(.el-button--default) {
-  border-color: #dcdfe6;
-  color: #606266;
+  border-color: var(--el-border-color);
+  color: var(--el-text-color-regular);
 }
 
 :deep(.el-button--default:hover) {
-  border-color: #c0c4cc;
-  color: #303133;
+  border-color: var(--el-border-color-darker);
+  color: var(--el-text-color-primary);
 }
 </style>

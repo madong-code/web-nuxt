@@ -392,7 +392,7 @@ onUnmounted(() => {
 }
 
 .qr-code {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 8px;
   padding: 10px;
 }

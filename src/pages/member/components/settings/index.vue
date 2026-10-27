@@ -275,7 +275,7 @@ const navigateToPassword = () => {
   font-weight: 600;
   margin-bottom: 20px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .account-form {

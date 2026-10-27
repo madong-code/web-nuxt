@@ -16,6 +16,14 @@
   "bio_placeholder": "Please enter bio",
   "save_button": "Save",
   "reset_button": "Reset",
+  "avatar": "Avatar",
+  "change_avatar": "Change Avatar",
+  "avatar_crop_title": "Crop Avatar",
+  "avatar_crop_tip": "Drag to adjust position, zoom with wheel or slider",
+  "avatar_drop_tip": "Click or drop an image here",
+  "avatar_crop_confirm": "Confirm & Upload",
+  "avatar_reselect": "Select Another",
+  "avatar_crop_failed": "Failed to read image, please try another one",
   "upload_avatar": "Upload Avatar",
   "avatar_uploading": "Uploading…",
   "avatar_type_error": "Only JPG, PNG, GIF and WEBP images are supported",
@@ -26,6 +34,9 @@
   "update_failed": "Save failed",
   "validation": {
     "nickname_required": "Please enter nickname",
+    "nickname_max": "Nickname cannot exceed 50 characters",
+    "bio_max": "Bio cannot exceed 500 characters",
     "email_format": "Please enter correct email address"
-  }
+  },
+  "refresh_failed": "Saved, but refreshing profile failed. Please refresh the page"
 }
