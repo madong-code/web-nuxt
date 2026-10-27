@@ -391,7 +391,7 @@ const handleRegister = async () => {
     try {
       const registerApi = currentType.value === 'username' ? registerUser : registerWithMobile
       const data = await registerApi(formData) as any
-      memberStore.setToken(data.access_token, data.refresh_token || '', data.permissions || [])
+      await memberStore.setToken(data.access_token, data.refresh_token || '', data.permissions || [])
       memberStore.logClose()
     } catch (error) {
       isLoading.value = false

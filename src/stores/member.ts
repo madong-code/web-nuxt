@@ -35,6 +35,12 @@ export const useMemberStore = defineStore('member', {
             }
             // 先获取用户信息，再刷新菜单（确保 checkMenuPermission 能正确判断登录状态）
             await this.getMemberInfoSilent()
+            // 用户信息拉取失败（info 仍为空）视为登录失败：清空凭证并登出，
+            // 避免"token 有效但 info 为空"的半登录态导致菜单/权限判断异常
+            if (!this.info) {
+                this.logout('/')
+                throw new Error('获取用户信息失败，请重新登录')
+            }
             this.refreshMenuAfterLogin()
         },
         // 内部方法：拉取并写入会员信息（getMemberInfo / getMemberInfoSilent 共用）
