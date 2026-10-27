@@ -59,7 +59,14 @@ export const fullUrl = (relativeUrl: string, domain = '') => {
     if (!domain || regUrl.test(relativeUrl) || regexImg.test(relativeUrl)) {
         return relativeUrl
     }
-    return domain + relativeUrl
+    // 本地存储模式（domain 无 cdn_url 时为相对路径）：/upload/ 下静态资源由站点
+    // 直接伺服（dev 下 /upload 已代理到后端），拼接到 /api 前缀会 404
+    if (relativeUrl.startsWith('/upload/') && !regUrl.test(domain)) {
+        return relativeUrl
+    }
+    // 斜杠规范化拼接：智能兼容两侧缺斜杠的配置（domain 去尾斜杠 + 路径补导斜杠），
+    // 避免 'https://cdn.xxx' + 'storage/a.png' 粘连成 'cdn.xxxstorage' 坏域名
+    return `${domain.replace(/\/+$/, '')}/${relativeUrl.replace(/^\/+/, '')}`
 }
 
 /**

@@ -433,8 +433,8 @@ const switchToLogin = () => {
 }
 
 .verification-tip {
-  background-color: #E8F5E8;
-  color: #2E7D32;
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-success);
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 30px;

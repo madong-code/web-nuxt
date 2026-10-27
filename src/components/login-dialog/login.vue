@@ -663,7 +663,7 @@ const switchToForgetPassword = () => {
 }
 
 .wechat-icon {
-  color: #00c22c;
+  color: var(--el-color-success);
   font-size: 16px;
 }
 

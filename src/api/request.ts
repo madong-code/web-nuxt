@@ -1,7 +1,7 @@
 import { ElMessage } from 'element-plus'
 import qs from 'qs'
 import { getToken } from '~/utils/common'
-import { useRuntimeConfig, navigateTo } from 'nuxt/app'
+import { useRuntimeConfig, navigateTo, tryUseNuxtApp } from 'nuxt/app'
 import { useMemberStore } from '~/stores/member'
 import { useSystemStore } from '~/stores/system'
 import { t } from '~/composables/lang'
@@ -62,6 +62,60 @@ export interface SseConnection {
 
 // ====== Http 类 ======
 
+// ====== SSR 上下文安全：runtimeConfig 进程级缓存 ======
+// useAsyncData handler / async IIFE 的深层 await 链中 Nuxt 实例上下文可能丢失，
+// useRuntimeConfig/useStore 届时会抛错 → 请求立即 reject → 页面 catch 兜底空数据，
+// SSR 直出空导航/默认站名并引发 hydration mismatch（线上「渲染异常」根因）。
+// SSR 端在有上下文的任何时机写入缓存（插件预热或首次成功调用），脱离上下文时回退缓存。
+type RuntimeConfig = ReturnType<typeof useRuntimeConfig>
+let serverRuntimeConfigCache: RuntimeConfig | null = null
+let clientRuntimeConfigCache: RuntimeConfig | null = null
+
+function getRuntimeConfig(): RuntimeConfig {
+    if (import.meta.server) {
+        const nuxtApp = tryUseNuxtApp()
+        if (nuxtApp) {
+            serverRuntimeConfigCache = useRuntimeConfig(nuxtApp)
+            return serverRuntimeConfigCache
+        }
+        if (serverRuntimeConfigCache) return serverRuntimeConfigCache
+        throw new Error('[request] Nuxt runtimeConfig unavailable (no context & no cache)')
+    }
+    // 客户端同样防御：onMounted/app:mounted 等异步回调、async 链深层会脱离 Nuxt
+    // 实例上下文，useRuntimeConfig() 直接抛错导致请求被兜底成空数据（表现为
+    // 「刷新非根路由后导航自愈失败」）。有上下文时写缓存，脱离时回退缓存，
+    // 最终兜底按 location 推导（客户端必然存在 window）。
+    const nuxtApp = tryUseNuxtApp()
+    if (nuxtApp) {
+        clientRuntimeConfigCache = useRuntimeConfig(nuxtApp)
+        return clientRuntimeConfigCache
+    }
+    if (clientRuntimeConfigCache) return clientRuntimeConfigCache
+    return {
+        public: {
+            API_BASE_URL: `${location.origin}/api/`,
+        },
+    } as RuntimeConfig
+}
+
+/** 插件预热入口：请求早期（必有上下文）写入缓存，供后续脱离上下文的请求兜底 */
+export function warmRequestRuntimeConfig(): void {
+    const nuxtApp = tryUseNuxtApp()
+    if (!nuxtApp) return
+    const cfg = useRuntimeConfig(nuxtApp)
+    if (import.meta.server) serverRuntimeConfigCache = cfg
+    else clientRuntimeConfigCache = cfg
+}
+
+/** token 读取防御：SSR 脱离 Pinia 上下文时 useMemberStore 会抛错，不应中断请求 */
+function safeGetToken(): string | null {
+    try {
+        return getToken()
+    } catch {
+        return null
+    }
+}
+
 class Http {
   private options: FetchOptions = {
     baseURL: '',
@@ -76,14 +130,17 @@ class Http {
      * 全局请求拦截器
      */
     this.options.onRequest = (data) => {
-      const runtimeConfig = useRuntimeConfig()
+      const runtimeConfig = getRuntimeConfig()
 
-      this.options.baseURL = (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
+      this.options.baseURL = this.resolveBaseUrl(runtimeConfig)
       const channelKey = (runtimeConfig.public.REQUEST_HEADER_CHANNEL_KEY as string) || 'channel'
       const tokenKey = (runtimeConfig.public.REQUEST_HEADER_TOKEN_KEY as string) || 'Authorization'
 
       this.options.headers[channelKey] = 'pc'
-      const token = getToken()
+      // 显式声明 JSON：后端 BusinessException 仅在 expectsJson 时返回 JSON，
+      // 否则会返回纯文本错误消息导致前端解析失败
+      this.options.headers['Accept'] = 'application/json'
+      const token = safeGetToken()
       if (token) {
         this.options.headers[tokenKey] = token
       } else {
@@ -100,7 +157,7 @@ class Http {
       this.handleNetworkError(response)
       if (data && data.code != undefined) {
         if (data.code == 0) {
-          if (options.showSuccessMessage) ElMessage({ message: data.msg, type: 'success' })
+          if (options.showSuccessMessage) this.notify(data.msg, 'success')
         } else {
           // 移除这里的错误提示，由 request 方法统一处理，避免重复提示
           this.handleAuthError(data.code)
@@ -118,25 +175,47 @@ class Http {
       return config.tenantId !== null ? String(config.tenantId) : null
     }
     // 2. 从环境变量读取默认值
-    const runtimeConfig = useRuntimeConfig()
+    const runtimeConfig = getRuntimeConfig()
     const envTenantId = runtimeConfig.public.X_TENANT_ID
     if (envTenantId) {
       return String(envTenantId)
     }
-    // 3. 从 store 读取（仅客户端）
+    // 3. 从 store 读取（仅客户端；脱离 Pinia 上下文时静默跳过）
     if (process.client) {
-      const storeTenantId = useSystemStore().tenantId
-      return storeTenantId ? String(storeTenantId) : null
+      try {
+        const storeTenantId = useSystemStore().tenantId
+        return storeTenantId ? String(storeTenantId) : null
+      } catch {
+        return null
+      }
     }
     return null
+  }
+
+  /**
+   * 解析 API 基础地址：
+   * - 浏览器端：相对 /api（由 Vite/Nginx 代理）或配置的绝对地址
+   * - SSR 端：相对地址在 Node 中无法解析，回退内网绝对地址 NUXT_API_SERVER_BASE
+   */
+  private resolveBaseUrl(runtimeConfig: ReturnType<typeof useRuntimeConfig>): string {
+    const configured = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || ''
+    if (import.meta.server && (!configured || configured.startsWith('/'))) {
+      return (runtimeConfig.apiServerBase as string) || 'http://127.0.0.1:8501/api'
+    }
+    return configured || `${location.origin}/api/`
+  }
+
+  /** 仅浏览器端弹出消息（SSR 阶段无 DOM，ElMessage 会直接抛错） */
+  private notify(message: string, type: 'error' | 'success' = 'error'): void {
+    if (import.meta.client) ElMessage({ message, type })
   }
 
   /**
    * 拼接完整请求 URL（消除 upload / request / refreshToken 中重复的 baseURL 拼接逻辑）
    */
   private buildFullUrl(url: string): string {
-    const runtimeConfig = useRuntimeConfig()
-    const baseURL = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
+    const runtimeConfig = getRuntimeConfig()
+    const baseURL = this.resolveBaseUrl(runtimeConfig)
     const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
     const normalizedUrl = url.startsWith('/') ? url.slice(1) : url
     return `${normalizedBaseURL}/${normalizedUrl}`
@@ -203,8 +282,47 @@ class Http {
 
           // 处理响应数据
           if (data && data.code !== undefined) {
-            // 特殊处理 401 和 403
-            if (data.code == 401 || data.code == 403) {
+            // 401：与 request() 一致，尝试刷新 token 后重发一次，避免上传类请求
+            // 因 access token 过期而直接失败（表现为"上传无响应"）
+            if (data.code == 401) {
+              const memberStore = useMemberStore()
+              if (!memberStore.refreshToken) {
+                memberStore.logout()
+                this.notify(data.msg || '登录已过期，请重新登录')
+                reject(new Error(data.msg || '登录已过期，请重新登录'))
+                return
+              }
+              try {
+                const newToken = await this.handle401Error({
+                  url: fullURL,
+                  method: 'POST',
+                  options: requestOptions,
+                  config
+                })
+                this.options.headers['Authorization'] = `Bearer ${newToken}`
+                ;(requestOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${newToken}`
+                const retryResponse = await fetch(fullURL, {
+                  method: 'POST',
+                  headers: { ...requestOptions.headers },
+                  body: formData
+                })
+                const retryData = await retryResponse.json()
+                if (retryData && retryData.code !== undefined && retryData.code == 0) {
+                  resolve(config.returnFullResponse ? retryData : retryData.data)
+                } else {
+                  const retryMsg = retryData?.msg || '请求失败'
+                  this.notify(retryMsg)
+                  reject(new Error(retryMsg))
+                }
+              } catch (refreshError: any) {
+                console.error('[upload] Token refresh failed:', refreshError)
+                reject(refreshError)
+              }
+              return
+            }
+
+            // 特殊处理 403
+            if (data.code == 403) {
               this.handleAuthError(data.code)
             }
 
@@ -219,7 +337,7 @@ class Http {
                 return
               }
 
-              ElMessage({ message: data.msg || '请求失败', type: 'error' })
+              this.notify(data.msg || '请求失败')
               reject(new Error(data.msg || '请求失败'))
               return
             }
@@ -235,7 +353,7 @@ class Http {
           }
         } catch (error) {
           console.error('[upload] Error:', error)
-          ElMessage({ message: '网络请求失败', type: 'error' })
+          this.notify('网络请求失败')
           reject(error)
         }
       })()
@@ -356,7 +474,7 @@ class Http {
                 console.log('[request] New token:', newToken?.substring(0, 20) + '...')
                 // 重新发送请求
                 this.options.headers['Authorization'] = `Bearer ${newToken}`
-                requestOptions.headers['Authorization'] = `Bearer ${newToken}`
+                ;(requestOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${newToken}`
                 return fetch(fullURL, requestOptions)
               }).then(async (newResponse) => {
                 const newData = await newResponse.json()
@@ -367,7 +485,7 @@ class Http {
                     resolve(newData.data as T)
                   }
                 } else {
-                  ElMessage({ message: newData.msg || '请求失败', type: 'error' })
+                  this.notify(newData.msg || '请求失败')
                   reject(new Error(newData.msg || '请求失败'))
                 }
               }).catch((error) => {
@@ -392,7 +510,7 @@ class Http {
               }
 
               // 否则显示错误提示并中断
-              ElMessage({ message: data.msg || '请求失败', type: 'error' })
+              this.notify(data.msg || '请求失败')
               reject(new Error(data.msg || '请求失败'))
               return
             }
@@ -411,7 +529,7 @@ class Http {
           }
         } catch (error) {
           console.error('[request] Error:', error)
-          ElMessage({ message: '网络请求失败', type: 'error' })
+          this.notify('网络请求失败')
           reject(error)
         }
       })();
@@ -485,58 +603,69 @@ class Http {
         // 401 错误由 handle401Error 处理
         break;
       case 402:
-        navigateTo('/site/close', { replace: true })
+        // SSR 脱离上下文时 navigateTo 会抛错，静默降级（站点关闭提示由客户端接管）
+        try {
+          navigateTo('/site/close', { replace: true })
+        } catch {}
         break;
     }
   }
 
   private handleNetworkError(err: any) {
+    // SSR 脱离上下文时 i18n 的 t() 会抛错，降级为无提示
+    const tr = (key: string): string => {
+      try {
+        return t(key)
+      } catch {
+        return ''
+      }
+    }
     if (err.status && err.status != 200) {
       let errMessage = ''
       switch (err.status) {
         case 400:
-          errMessage = t('common.request.400')
+          errMessage = tr('common.request.400')
           break
         case 401:
-          errMessage = t('common.request.401')
+          errMessage = tr('common.request.401')
           // 401 错误由 handle401Error 处理
           break
         case 403:
-          errMessage = t('common.request.403')
+          errMessage = tr('common.request.403')
           break
         case 404:
-          errMessage = err.url + t('common.request.404')
+          errMessage = err.url + tr('common.request.404')
           break
         case 405:
-          errMessage = t('common.request.405')
+          errMessage = tr('common.request.405')
           break
         case 408:
-          errMessage = t('common.request.408')
+          errMessage = tr('common.request.408')
           break
         case 409:
-          errMessage = t('common.request.409')
+          errMessage = tr('common.request.409')
           break
         case 500:
-          errMessage = t('common.request.500')
+          errMessage = tr('common.request.500')
           break
         case 501:
-          errMessage = t('common.request.501')
+          errMessage = tr('common.request.501')
           break
         case 502:
-          errMessage = t('common.request.502')
+          errMessage = tr('common.request.502')
           break
         case 503:
-          errMessage = t('common.request.503')
+          errMessage = tr('common.request.503')
           break
         case 504:
-          errMessage = t('common.request.504')
+          errMessage = tr('common.request.504')
           break
         case 505:
-          errMessage = t('common.request.505')
+          errMessage = tr('common.request.505')
           break
       }
       if (errMessage) {
-        ElMessage({ message: errMessage, type: 'error' })
+        this.notify(errMessage)
       }
     }
   }
@@ -581,7 +710,7 @@ export function sse(
     return { close: () => {}, readyState: () => EventSource.CLOSED }
   }
 
-  const runtimeConfig = useRuntimeConfig()
+  const runtimeConfig = getRuntimeConfig()
   const apiURL = (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
 
   // 构建完整 URL
@@ -721,7 +850,7 @@ export async function requestSSE(
     return
   }
 
-  const runtimeConfig = useRuntimeConfig()
+  const runtimeConfig = getRuntimeConfig()
   const baseURL = (runtimeConfig.public.API_BASE_URL as string) || `${location.origin}/api/`
 
   // 处理 URL
