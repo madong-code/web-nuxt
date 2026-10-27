@@ -5,10 +5,28 @@ export default [
         component: () => import('~/pages/index.vue'),
         meta: {
             title: '首页',
-            // menu 默认 true，无需显式声明
-            category: '1',
-            order: 0,
-            icon: 'mdi:home',
+            layout: 'default',
+            menu: true,
+        }
+    },
+    {
+        // 框架默认搜索页（搜索插件的兜底；插件可覆盖本路由）
+        path: "/search",
+        component: () => import('~/pages/search.vue'),
+        meta: {
+            title: '搜索',
+            layout: 'default',
+            menu: false,
+        }
+    },
+    {
+        // 个人中心默认落点：302 到概述页（个人中心分组首个子项，与 tag 导航一致）
+        path: "/member",
+        redirect: '/member/overview',
+        meta: {
+            title: '个人中心',
+            layout: 'default',
+            menu: false,
         }
     },
     {
@@ -17,9 +35,10 @@ export default [
         meta: {
             title: '个人资料',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 10,
             icon: 'mdi:account-circle',
             is_public: false,
@@ -33,9 +52,10 @@ export default [
         meta: {
             title: '用户设置',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 11,
             icon: 'mdi:cog',
             is_public: false,
@@ -49,9 +69,10 @@ export default [
         meta: {
             title: '第三方绑定',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 12,
             icon: 'mdi:link-variant',
             is_public: false,
@@ -65,9 +86,10 @@ export default [
         meta: {
             title: '修改密码',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 13,
             icon: 'mdi:key-variant',
             is_public: false,
@@ -81,9 +103,10 @@ export default [
         meta: {
             title: '积分记录',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 14,
             icon: 'mdi:star-circle',
             is_public: false,
@@ -97,9 +120,10 @@ export default [
         meta: {
             title: '余额记录',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 15,
             icon: 'mdi:wallet',
             is_public: false,
@@ -113,9 +137,10 @@ export default [
         meta: {
             title: '每日签到',
             layout: 'member',
+            menu: false,
             category: '2',
-            parent: '/member/account',
-            parentTitle: '账户设置',
+            parent: '/member',
+            parentTitle: '个人中心',
             order: 16,
             icon: 'mdi:calendar-check',
             is_public: false,
