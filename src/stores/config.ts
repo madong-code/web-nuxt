@@ -54,15 +54,6 @@ interface searchConfig {
 }
 
 /**
- * 统计分析配置接口定义
- * 用于管理统计分析相关的配置选项
- */
-interface analyticsConfig {
-    baidu_tongji_code: string,    // 百度统计代码
-    baidu_tongji_enabled: number | boolean // 是否启用百度统计 (0/1 或 true/false)
-}
-
-/**
  * 站点设置配置接口定义
  * 用于管理站点基础设置相关的配置选项
  */
@@ -95,7 +86,6 @@ interface Config {
     theme: themeConfig,     // 主题配置模块
     payment: paymentConfig, // 支付配置模块
     search: searchConfig,   // 搜索配置模块
-    analytics: analyticsConfig, // 统计分析配置模块
     siteSetting: siteSettingConfig, // 站点设置配置模块
     upload_mode: string,    // 当前存储模式：local 时资源与站点同域，其余用 cdn_url 前缀
     cdn_url: string,        // 资源 CDN 域名（fullUrl 拼接相对路径用，空串表示同域）
@@ -136,10 +126,6 @@ export const useConfigStore = defineStore('config', {
                 keyword: '',          // 默认搜索关键字为空
                 keyword_enabled: 0    // 默认不启用关键字搜索
             },
-            analytics: {
-                baidu_tongji_code: '',    // 默认百度统计代码为空
-                baidu_tongji_enabled: 0   // 默认不启用百度统计
-            },
             siteSetting: {
                 site_open: 1,                 // 默认开启站点
                 site_url: '',                 // 默认站点URL（留空自动获取）
@@ -177,13 +163,12 @@ export const useConfigStore = defineStore('config', {
                     loginConfigRes,
                     siteSettingRes,
                     searchConfigRes,
-                    analyticsConfigRes,
                     paymentConfigRes
                 ] = await Promise.all([
                     getConfigByCode('web_login_config'),
-                    getConfigByCode('site_setting'),
+                    // web 前台门户站点设置（web_site_setting 行；ERP 后台自身为 site_setting 行，两站分离）
+                    getConfigByCode('web_site_setting'),
                     getConfigByCode('web_search_config'),
-                    getConfigByCode('web_analytics_config'),
                     getConfigByCode('web_payment_config')
                 ])
 
@@ -203,7 +188,7 @@ export const useConfigStore = defineStore('config', {
                     }
                 }
 
-                // 更新站点设置（对应后台 site_setting，分组 default）
+                // 更新站点设置（对应后台「网站设置→站点设置」，web_site_setting 行，分组 default）
                 const siteSetting = siteSettingRes?.data || siteSettingRes || {}
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
@@ -217,7 +202,7 @@ export const useConfigStore = defineStore('config', {
                     this.siteSetting.site_icp_url = siteSetting.site_icp_url || 'https://beian.miit.gov.cn/'
                     this.siteSetting.site_network_security = siteSetting.site_network_security || ''
                     this.siteSetting.site_network_security_url = siteSetting.site_network_security_url || ''
-                    // 存储模式与 CDN 域名（后端在 site_setting 响应中追加）
+                    // 存储模式与 CDN 域名（后端在 web_site_setting 响应中追加）
                     // 云存储模式下 fullUrl 必须用 CDN 域名拼资源地址，否则会请求站点域名下的本地文件而 404
                     this.siteSetting.upload_mode = siteSetting.upload_mode || 'local'
                     this.siteSetting.cdn_url = siteSetting.cdn_url || ''
@@ -237,12 +222,8 @@ export const useConfigStore = defineStore('config', {
                     this.search.keyword_enabled = parseInt(searchConfig.keyword_enabled)
                 }
 
-                // 更新统计分析配置
-                const analyticsConfig = analyticsConfigRes?.data || analyticsConfigRes || {}
-                if (analyticsConfig && !Array.isArray(analyticsConfig)) {
-                    this.analytics.baidu_tongji_code = analyticsConfig.baidu_tongji_code || ''
-                    this.analytics.baidu_tongji_enabled = parseInt(analyticsConfig.baidu_tongji_enabled)
-                }
+                // 统计分析配置已上收：百度统计改由「网站设置→站点设置」（site_setting.tongji_*）配置，
+                // layouts unhead 唯一注入，web_analytics_config 与 BaiduAnalytics 组件已下线
 
                 // 更新支付配置
                 const paymentConfig = paymentConfigRes?.data || paymentConfigRes || {}

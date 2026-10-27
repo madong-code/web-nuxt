@@ -8,9 +8,6 @@
                 <NuxtPage />
             </NuxtLayout>
         </el-config-provider>
-
-        <!-- 百度统计组件 -->
-        <BaiduAnalytics />
     </div>
 </template>
 
