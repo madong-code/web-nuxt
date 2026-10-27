@@ -21,13 +21,16 @@ const pageSeo = computed(() => ({
   noFollow: route.meta.noFollow as boolean || false
 }))
 
+// 站名兜底：setup 同步阶段读取一次（useRuntimeConfig 不可在 computed 延迟求值中调用）
+const fallbackSiteName = (useRuntimeConfig().public.SITE_NAME as string) || 'MaDong'
+
 // SEO 配置数据 - 直接从 configStore 读取
 const seoConfig = computed(() => ({
   // 基础 SEO 配置
   title: configStore.siteSetting?.seo_title || 'madong通用快速开发框架',
   description: configStore.siteSetting?.seo_description || 'madong开源服务平台',
   keywords: configStore.siteSetting?.seo_keywords || ['madong', 'madong-admin', 'madong工作流'],
-  siteName: configStore.siteSetting?.site_name || fallbackSiteName(),
+  siteName: configStore.siteSetting?.site_name || fallbackSiteName,
   siteUrl: configStore.siteSetting?.site_url || (typeof window !== 'undefined' ? window.location.origin : ''),
   shareImage: configStore.siteSetting?.share_image || '/images/share-default.png'
 }))

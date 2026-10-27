@@ -158,6 +158,8 @@ export const useConfigStore = defineStore('config', {
          */
         async getWebGroupConfigs(router?: any) {
             try {
+                // 站名兜底需在首个 await 前同步读取（useRuntimeConfig 依赖 Nuxt 实例上下文）
+                const fallbackSiteName = (useRuntimeConfig().public.SITE_NAME as string) || 'MaDong'
                 // 并行获取所有配置
                 const [
                     loginConfigRes,
@@ -193,9 +195,7 @@ export const useConfigStore = defineStore('config', {
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
                     this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.site_name = siteSetting.site_name
-                        || (useRuntimeConfig().public.SITE_NAME as string)
-                        || 'MaDong'
+                    this.siteSetting.site_name = siteSetting.site_name || fallbackSiteName
                     this.siteSetting.site_logo = siteSetting.site_logo || ''
                     this.siteSetting.site_keywords = siteSetting.site_keywords || ''
                     this.siteSetting.site_description = siteSetting.site_description || ''
