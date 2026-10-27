@@ -27,7 +27,7 @@ const seoConfig = computed(() => ({
   title: configStore.siteSetting?.seo_title || 'madong通用快速开发框架',
   description: configStore.siteSetting?.seo_description || 'madong开源服务平台',
   keywords: configStore.siteSetting?.seo_keywords || ['madong', 'madong-admin', 'madong工作流'],
-  siteName: configStore.siteSetting?.site_name || 'madong官网',
+  siteName: configStore.siteSetting?.site_name || fallbackSiteName(),
   siteUrl: configStore.siteSetting?.site_url || (typeof window !== 'undefined' ? window.location.origin : ''),
   shareImage: configStore.siteSetting?.share_image || '/images/share-default.png'
 }))

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { getConfigByCode } from '~/api/system'
-import { navigateTo } from 'nuxt/app'
+import { navigateTo, useRuntimeConfig } from 'nuxt/app'
 
 /**
  * 登录配置接口定义
@@ -129,7 +129,7 @@ export const useConfigStore = defineStore('config', {
             siteSetting: {
                 site_open: 1,                 // 默认开启站点
                 site_url: '',                 // 默认站点URL（留空自动获取）
-                site_name: 'madong',          // 默认站点名称
+                site_name: '',                // 默认站点名称（加载后由 env NUXT_PUBLIC_SITE_NAME 兜底）
                 site_logo: '',                // 默认站点Logo
                 site_keywords: '',            // 默认关键词为空
                 site_description: '',         // 默认描述为空
@@ -193,7 +193,9 @@ export const useConfigStore = defineStore('config', {
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
                     this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.site_name = siteSetting.site_name || 'madong'
+                    this.siteSetting.site_name = siteSetting.site_name
+                        || (useRuntimeConfig().public.SITE_NAME as string)
+                        || 'MaDong'
                     this.siteSetting.site_logo = siteSetting.site_logo || ''
                     this.siteSetting.site_keywords = siteSetting.site_keywords || ''
                     this.siteSetting.site_description = siteSetting.site_description || ''

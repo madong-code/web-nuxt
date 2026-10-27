@@ -15,7 +15,7 @@
     >
         <!-- 抽屉头：品牌 + 关闭（Logo 与桌面端 header 同源：站点设置 site_logo，私有空间签名门控对齐） -->
         <div class="md-drawer-head">
-            <NuxtLink to="/channel/home" class="flex items-center gap-2 min-w-0" @click="close">
+            <NuxtLink to="/" class="flex items-center gap-2 min-w-0" @click="close">
                 <img
                     v-if="siteLogo && !logoPending"
                     :src="fullUrl(siteLogo)"
@@ -25,7 +25,7 @@
                 <span v-else class="w-8 h-8 rounded-lg bg-[color:var(--md-primary)] flex items-center justify-center shrink-0">
                     <Newspaper class="w-4 h-4 text-white" />
                 </span>
-                <span class="text-base font-semibold text-[color:var(--md-text-1)] truncate">{{ siteName || 'Madong Portal' }}</span>
+                <span class="text-base font-semibold text-[color:var(--md-text-1)] truncate">{{ siteName }}</span>
             </NuxtLink>
             <button
                 class="md-drawer-close"

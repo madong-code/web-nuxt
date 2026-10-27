@@ -13,7 +13,7 @@
             :class="isDocReader ? 'w-full px-5' : 'max-w-[1250px] mx-auto px-4'"
         >
             <!-- Logo（后台站点设置：自定义 Logo + 站点名称；私有空间 SSR 渲染品牌占位防直链泄露，签名就绪后切换） -->
-            <NuxtLink to="/channel/home" class="flex items-center gap-2.5 shrink-0">
+            <NuxtLink to="/" class="flex items-center gap-2.5 shrink-0">
                 <img
                     v-if="cfg.site_logo && !logoPending"
                     :src="fullUrl(cfg.site_logo)"
@@ -24,7 +24,7 @@
                     <Newspaper class="w-5 h-5 text-white" />
                 </span>
                 <span class="text-[17px] md:text-[19px] font-semibold text-[color:var(--md-text-1)] truncate">
-                    {{ cfg.site_name || 'Madong Portal' }}
+                    {{ cfg.site_name }}
                 </span>
             </NuxtLink>
 

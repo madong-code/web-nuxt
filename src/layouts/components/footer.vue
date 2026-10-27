@@ -128,7 +128,7 @@ const isExternal = (item: any) =>
 
 /** 版权文案：后台自定义模板（支持 {year}/{site} 占位），为空走默认句式 */
 const copyrightText = computed(() => {
-    const site = cfg.value.site_name || 'Madong Portal'
+    const site = cfg.value.site_name
     const tpl = cfg.value.copyright?.trim()
         ? cfg.value.copyright
         : `© {year} {site} · ${t('common.footer.copyright')}`

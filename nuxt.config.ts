@@ -87,6 +87,8 @@ export default defineNuxtConfig({
     apiServerBase: process.env.NUXT_API_SERVER_BASE || 'http://127.0.0.1:8500/api',
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
+      // 站点名称兜底：后端站点配置缺失/未返回时（如重新安装后新库）使用此值展示
+      SITE_NAME: process.env.NUXT_PUBLIC_SITE_NAME || 'MaDong',
       REQUEST_HEADER_CHANNEL_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_CHANNEL_KEY || 'pc',
       REQUEST_HEADER_TOKEN_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_TOKEN_KEY || 'Authorization',
       DEFAULT_LANG: process.env.NUXT_PUBLIC_DEFAULT_LANG || 'zh-CN',
