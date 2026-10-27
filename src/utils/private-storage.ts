@@ -164,6 +164,21 @@ export const resolveSignedUrl = (path: string): null | string => {
 }
 
 /**
+ * 私有资源是否处于「首屏占位」状态（配置化渲染判断）
+ *
+ * 私有空间的签名直链不进 SSR HTML：签名地址一旦写入首屏会被 CDN/代理缓存、
+ * 被爬虫抓取扩散，绕开签名时效与防盗刷设计，还会提前消耗空间流量。
+ * 因此首屏由调用方按站点配置渲染品牌占位，本方法告知「该资源是否应渲染占位」：
+ * - 私有空间存储资源且尚未换取到签名地址 → true（含 SSR 首屏，恒占位；换取失败也保持占位，不产生裸链请求）
+ * - 已有签名地址 / 公开空间 / 非存储资源 → false（按 fullUrl 正常渲染）
+ */
+export const isPrivateResourcePending = (path: string): boolean => {
+    if (!isPrivateStorage() || !isStorageResource(path)) return false
+    const trimmed = (path || '').trim()
+    return signedUrls.value[trimmed] === undefined
+}
+
+/**
  * 主动换取一批资源地址（用于非渲染期写入缓存）
  */
 export const prefetchSignedUrls = async (paths: (string | undefined)[]): Promise<void> => {

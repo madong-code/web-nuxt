@@ -5,6 +5,7 @@
         trigger="click"
         popper-class="theme-panel-popper"
         :show-arrow="false"
+        :persistent="false"
         @show="panelVisible = true"
         @hide="panelVisible = false"
     >

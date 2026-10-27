@@ -9,7 +9,7 @@ import { THEME_COLOR } from '~/stores/constant/keys'
 
 // 预设主题色（与主题面板色块一致，第一个为站点编译期默认主色，选中即恢复默认）
 export const THEME_PRESETS = [
-    { name: '靛蓝', color: '#6366f1' },
+    { name: '科技蓝', color: '#2F6BFF' },
     { name: '翡翠绿', color: '#10b981' },
     { name: '优雅紫', color: '#8b5cf6' },
     { name: '活力橙', color: '#f59e0b' },

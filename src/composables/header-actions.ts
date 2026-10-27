@@ -19,6 +19,15 @@ import { navigateTo } from 'nuxt/app'
 import type { Menus, HeaderActionConfig } from '~/stores/interface'
 import { useSystemStore } from '~/stores/system'
 
+/**
+ * 通知/私信入口（/notify、/message、/messages 及 /member/* 变体）已统一并入
+ * 头像下拉会员菜单，桌面头部与移动抽屉共用此判定，避免两处过滤不同步
+ * 导致某端重复渲染出裸消息链接。
+ */
+export function isMergedUnreadAction(path?: string): boolean {
+  return /^\/(member\/)?(notify|messages?)([/?]|$)/.test(path || '')
+}
+
 export function useHeaderActions() {
   const systemStore = useSystemStore()
 

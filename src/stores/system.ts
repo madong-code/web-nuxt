@@ -4,8 +4,8 @@ import { useRuntimeConfig } from '#imports'
 import storage from '~/utils/storage'
 import type { Menus, RoutingMode, HeaderActionConfig } from './interface'
 import { LinkTarget, MenuType } from './interface'
-import { getRoutingConfig } from '~/api/site'
-import type { RoutingConfig } from '~/api/site/types'
+import { fetchNavConfig } from '~/api/site'
+import type { NavConfigData, NavMenuItem } from '~/api/site/types'
 import { collectRoutes } from '~/router/routes-collector'
 import { buildFrontendMenu, mergeMenus } from '~/utils/menu-builder'
 import { loadAllLocaleMessages } from '~/plugins/i18n'
@@ -84,6 +84,8 @@ export const useSystemStore = defineStore('system', {
         member_menu: [],
         /** 头部动作菜单（category='3'）：导航栏右侧扩展入口，如消息铃铛 */
         header_actions: [],
+        /** 底部菜单（category='4'）：页脚插座统一绑定 web_menu，无数据时页脚不渲染该区 */
+        footer_menu: [],
         initialize: false,
         user_initialize: false,
         menu_expand: false
@@ -98,28 +100,9 @@ export const useSystemStore = defineStore('system', {
       return availableLanguages.find(lang => lang.name === state.lang) || availableLanguages[0]
     },
 
-    headNav: (state) => {
-      return state.site.nav_menu || []
-    },
-
-    navMenu: (state) => {
-      return state.site.nav_menu || []
-    },
-
-    memberMenu: (state) => {
-      return state.site.member_menu || []
-    },
-
-    /** PC 导航栏固定显示的一级菜单（前 navMaxVisibleItems 项） */
-    visibleNavMenu: (state) => {
-      const menu = state.site.nav_menu || []
-      return menu.slice(0, state.navMaxVisibleItems)
-    },
-
-    /** PC 导航栏溢出的一级菜单（超出 navMaxVisibleItems 的部分） */
-    overflowNavMenu: (state) => {
-      const menu = state.site.nav_menu || []
-      return menu.slice(state.navMaxVisibleItems)
+    /** 底部菜单（category='4'）：PortalFooter 等底部插座统一取数源，来自 sys_web_menu 体系 */
+    footerMenus: (state) => {
+      return state.site.footer_menu || []
     },
 
     isInitialized: (state) => {
@@ -285,17 +268,25 @@ export const useSystemStore = defineStore('system', {
         // 保存当前的menu_expand状态
         const currentMenuExpand = this.site.menu_expand
 
+        // 生产 SSR 下 await 续体会丢失 Nuxt 实例上下文，store 的创建必须发生在
+        // 首个 await 之前（否则 useConfigStore() 内部触发 pinia 插件的
+        // useRuntimeConfig() 时抛 [nuxt] instance unavailable，中断整个初始化）。
+        // 方法调用不需要上下文，提前捕获引用即可。
+        const configStore = useConfigStore()
+
         // 解析最终路由菜单模式：运行期后端配置 > 构建期环境变量 > 默认 backend
         const buildMode: RoutingMode = useRuntimeConfig().public.ROUTING_MODE as RoutingMode
           || 'backend'
         let navMenu: Menus[] = []
         let memberMenu: Menus[] = []
         let headerActions: Menus[] = []
+        // 底部菜单（category='4'）：仅由后端 web_menu 提供，前端路由骨架无此概念
+        let footerMenu: Menus[] = []
 
         try {
-          // 运行期覆盖：后端可下发 routing_mode 与前端模式可见性/权限
-          const routingConfig = await getRoutingConfig().catch(() => null) as RoutingConfig | null
-          const runtimeMode = routingConfig?.routing_mode
+          // 站点导航配置（唯一接口）：登录态无关整体输出，树已由后端组好
+          const navConfig = await fetchNavConfig().catch(() => null) as NavConfigData | null
+          const runtimeMode = navConfig?.routing_mode
           const validModes: RoutingMode[] = ['frontend', 'backend', 'hybrid']
           const finalMode: RoutingMode =
             validModes.includes(runtimeMode as RoutingMode) ? runtimeMode as RoutingMode : buildMode
@@ -303,35 +294,33 @@ export const useSystemStore = defineStore('system', {
           this.routingMode = finalMode
 
           // 后端可下发 PC 导航最大显示数
-          if (routingConfig?.max_nav_items && routingConfig.max_nav_items > 0) {
-            this.navMaxVisibleItems = routingConfig.max_nav_items
+          if (navConfig?.max_nav_items && navConfig.max_nav_items > 0) {
+            this.navMaxVisibleItems = navConfig.max_nav_items
+          }
+
+          // 菜单权限码集合：仅 backend/hybrid 模式消费（auth 中间件校验非公开路由有效性），
+          // frontend 模式保持为空，对齐原 routing-config 语义
+          if (finalMode !== 'frontend') {
+            this.backendMenuCodes = (navConfig?.codes || []).filter((c: string) => !!c)
           }
 
           if (finalMode === 'frontend') {
             // 前端模式：由 routes 生成菜单骨架，叠加后端权限/可见性过滤
             const allRoutes = collectRoutes()
             const skeleton = buildFrontendMenu(allRoutes)
-            const visibility = routingConfig?.menu_visibility || {}
+            const visibility = navConfig?.menu_visibility || {}
             navMenu = this.applyVisibility(skeleton.nav, visibility)
             memberMenu = this.applyVisibility(skeleton.member, visibility)
             headerActions = this.applyVisibility(skeleton.headerActions, visibility)
           } else if (finalMode === 'hybrid') {
             // 混合模式：后端菜单为主骨架 + 前端路由菜单补充
-            const allMenus = routingConfig?.menus || []
-            // 收集后端菜单 codes，供 auth 中间件校验非公开路由有效性
-            this.backendMenuCodes = allMenus
-              .map((m: any) => m.code)
-              .filter((c: string) => c)
-            const navMenuItems = allMenus.filter((menu: any) => String(menu.category) === '1') || []
-            const memberMenuItems = allMenus.filter((menu: any) => String(menu.category) === '2') || []
-            const headerActionItems = allMenus.filter((menu: any) => String(menu.category) === '3') || []
-            const backendNav = this.buildMenuTree(navMenuItems)
-            const backendMember = this.buildMenuTree(memberMenuItems)
-            const backendHeaderActions = this.buildMenuTree(headerActionItems)
+            const backendNav = this.navTreeToMenus(navConfig?.menus)
+            const backendMember = this.navTreeToMenus(navConfig?.member_menus)
+            const backendHeaderActions = this.navTreeToMenus(navConfig?.header_actions)
 
             const allRoutes = collectRoutes()
             const frontendSkeleton = buildFrontendMenu(allRoutes)
-            const visibility = routingConfig?.menu_visibility || {}
+            const visibility = navConfig?.menu_visibility || {}
             const frontendNav = this.applyVisibility(frontendSkeleton.nav, visibility)
             const frontendMember = this.applyVisibility(frontendSkeleton.member, visibility)
             const frontendHeaderActions = this.applyVisibility(frontendSkeleton.headerActions, visibility)
@@ -343,19 +332,14 @@ export const useSystemStore = defineStore('system', {
             navMenu = merged.nav
             memberMenu = merged.member
             headerActions = merged.headerActions
+            // footer 不参与前后端合并：底部插座唯一数据源是 web_menu（category='4'）
+            footerMenu = this.navTreeToMenus(navConfig?.footer_menus)
           } else {
-            // 后端模式：拉取后端菜单并按 pid 组树
-            const allMenus = routingConfig?.menus || []
-            // 收集后端菜单 codes，供 auth 中间件校验非公开路由有效性
-            this.backendMenuCodes = allMenus
-              .map((m: any) => m.code)
-              .filter((c: string) => c)
-            const navMenuItems = allMenus.filter((menu: any) => String(menu.category) === '1') || []
-            const memberMenuItems = allMenus.filter((menu: any) => String(menu.category) === '2') || []
-            const headerActionItems = allMenus.filter((menu: any) => String(menu.category) === '3') || []
-            navMenu = this.buildMenuTree(navMenuItems)
-            memberMenu = this.buildMenuTree(memberMenuItems)
-            headerActions = this.buildMenuTree(headerActionItems)
+            // 后端模式：直接消费后端组好的四类菜单树
+            navMenu = this.navTreeToMenus(navConfig?.menus)
+            memberMenu = this.navTreeToMenus(navConfig?.member_menus)
+            headerActions = this.navTreeToMenus(navConfig?.header_actions)
+            footerMenu = this.navTreeToMenus(navConfig?.footer_menus)
           }
         } catch (menuError) {
           console.error('初始化菜单失败:', menuError)
@@ -371,12 +355,12 @@ export const useSystemStore = defineStore('system', {
           nav_menu: processedNavMenu,
           member_menu: memberMenu,
           header_actions: headerActions,
+          footer_menu: footerMenu,
           initialize: true,
           menu_expand: currentMenuExpand
         }
 
         // 加载前端配置（搜索、统计等）
-        const configStore = useConfigStore()
         await configStore.initAllConfigs()
 
         return {
@@ -390,70 +374,37 @@ export const useSystemStore = defineStore('system', {
     },
 
     /**
-     * 构建层级菜单树
+     * 后端 nav-config 节点树 → Menus 树（后端已组树/排序，前端仅做形状映射：
+     * id 取 url；外链 type=LINK + BLANK；is_public/is_no_auth/code 透传进 meta 供权限检查）
      */
-    buildMenuTree(menuItems: any[]): Menus[] {
-      const menuMap = new Map<string, Menus>()
-      const rootMenus: Menus[] = []
-
-      // 第一步：转换所有菜单项为前端格式并放入映射
-      menuItems.forEach((item: any) => {
-        const menu: Menus = {
-          id: item.id,
-          name: item.name || item.title || '',
-          type: this.convertMenuType(item.type),
-          path: item.url || item.path || '',
-          title: item.name || item.title || '',
-          url: item.url || '',
-          icon: item.icon || '',
-          sort: item.sort ?? 0,
-          code: item.code || '',
-          permissions: item.permissions || item.code || [],
-            meta: {
-                type: this.convertMenuType(item.type),
-                target: item.target ? this.convertTarget(item.target) : LinkTarget.SELF,
-                // 后端菜单携带 is_public、is_no_auth 和 code
-                is_public: item.is_public,
-                is_no_auth: item.is_no_auth,
-                code: item.code || '',
-                permissions: item.meta?.permissions || item.code || [],
-                ...(item.meta || {}),
-                ...(item.extra || {}),
-            },
-          extra: item.extra || {},
-          children: []
-        }
-        // 统一 ID 类型为字符串，避免类型不匹配问题
-        menuMap.set(String(item.id), menu)
+    navTreeToMenus(nodes: NavMenuItem[] | undefined): Menus[] {
+      return (nodes ?? []).map((n) => {
+        const type = n.external ? MenuType.LINK : MenuType.PAGE
+        const code = n.code || ''
+        return {
+          id: n.url,
+          name: n.name,
+          type,
+          path: n.url,
+          title: n.name,
+          url: n.url,
+          icon: n.icon || '',
+          sort: 0,
+          code,
+          permissions: code ? [code] : [],
+          meta: {
+            type,
+            target: n.external ? LinkTarget.BLANK : LinkTarget.SELF,
+            is_public: n.is_public,
+            is_no_auth: n.is_no_auth,
+            code,
+            permissions: code ? [code] : [],
+            active_prefix: n.active_prefix || [],
+          },
+          extra: {},
+          children: this.navTreeToMenus(n.children),
+        } as Menus
       })
-
-      // 第二步：构建树结构
-      menuItems.forEach((item: any) => {
-        const menu = menuMap.get(String(item.id))
-        if (!menu) return
-
-        // 检查是否为根菜单：pid 为 0、"0" 或空值
-        const pid = String(item.pid).trim()
-        if (pid === "0" || !pid) {
-          // 根菜单
-          rootMenus.push(menu)
-        } else {
-          // 子菜单
-          const parent = menuMap.get(pid)
-          if (parent) {
-            if (!parent.children) {
-              parent.children = []
-            }
-            parent.children.push(menu)
-          } else {
-            // 如果父菜单不存在，将当前菜单作为根菜单处理
-            rootMenus.push(menu)
-          }
-        }
-      })
-
-      // 第三步：排序菜单
-      return this.sortMenus(rootMenus)
     },
 
     /**
@@ -694,43 +645,6 @@ export const useSystemStore = defineStore('system', {
       this.headerActionVersion++
     },
 
-
-    /**
-     * 转换菜单类型
-     */
-    convertMenuType(type: any): MenuType {
-      const typeMap: Record<string, MenuType> = {
-        1: MenuType.DIRECTORY, // 目录
-        2: MenuType.PAGE,       // 导航菜单（内部链接）
-        3: MenuType.LINK,       // 外部链接
-        4: MenuType.PAGE        // 单页面（内部链接）
-      }
-      return typeMap[type] || MenuType.PAGE
-    },
-
-    /**
-     * 转换目标窗口
-     */
-    convertTarget(target: any): LinkTarget {
-      const targetMap: Record<string, LinkTarget> = {
-        1: LinkTarget.SELF,
-        2: LinkTarget.BLANK
-      }
-      return targetMap[target] || LinkTarget.SELF
-    },
-
-    /**
-     * 排序菜单
-     */
-    sortMenus(menus: Menus[]): Menus[] {
-      return menus.sort((a, b) => (a.sort || 0) - (b.sort || 0)).map(menu => {
-        if (menu.children && menu.children.length > 0) {
-          menu.children = this.sortMenus(menu.children)
-        }
-        return menu
-      })
-    },
-
     isExternalLink(menu: Menus): boolean {
       return menu.type === MenuType.LINK && !!menu.url
     },
@@ -758,7 +672,7 @@ export const useSystemStore = defineStore('system', {
     },
 
     findMenuById(id: number, menus?: Menus[]): Menus | null {
-      const menuList = menus || this.headNav
+      const menuList = menus || this.site.nav_menu || []
 
       for (const menu of menuList) {
         if (menu.id === id) {
@@ -773,7 +687,7 @@ export const useSystemStore = defineStore('system', {
     },
 
     findMenuByPath(path: string, menus?: Menus[]): Menus | null {
-      const menuList = menus || this.headNav
+      const menuList = menus || this.site.nav_menu || []
 
       for (const menu of menuList) {
         if (menu.path === path) {

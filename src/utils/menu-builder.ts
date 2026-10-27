@@ -27,7 +27,7 @@ export interface FrontendMenuResult {
 /** 前端路由合成的父目录默认图标（meta.parent 指向的路由不存在时使用） */
 const SYNTHETIC_DIRECTORY_ICONS: Record<string, string> = {
   '/member/community': 'mdi:account-group',
-  '/member/account': 'mdi:cog-outline',
+  '/member': 'mdi:cog-outline',
   '/member/developer': 'mdi:code-braces',
 }
 

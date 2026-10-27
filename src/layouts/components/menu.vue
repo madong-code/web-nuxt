@@ -1,241 +1,142 @@
 <template>
-    <el-menu :default-active="state.activeMenu" :mode="mode" @select="onSelect">
-        <!-- 移动端（垂直模式）：直接展示全部菜单，不做溢出拆分 -->
-        <template v-if="isVertical">
-            <MenuSub :menus="systemStore.navMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
-        </template>
-        <!-- PC端（水平模式）：固定显示 + 溢出"更多" -->
-        <template v-else>
-            <MenuSub :menus="systemStore.visibleNavMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" :key="navMenuKey" />
-            <el-sub-menu
-                v-if="hasOverflow"
-                index="overflow-more"
-                class="overflow-more-menu"
-                :popper-offset="12"
-            >
-                <template #title>
-                    <Icon icon="mdi:dots-horizontal" color="var(--el-text-color-primary)" />
-                    {{ t('common.more') || '更多' }}
-                </template>
-                <MenuSub :menus="systemStore.overflowNavMenu" :show-icon="showIcon" @menu-click="$emit('menu-click')" />
-            </el-sub-menu>
-        </template>
-    </el-menu>
+    <!--
+        主导航递归节点：depth=0 为顶栏触发项（通栏高度+下划线选中态），
+        depth>0 为下拉面板内的行（子级再有子栏目时向右浮出二级面板，支持任意层级）。
+        面板开合用 CSS 子选择器精准控制：仅当前行 hover 展开直属面板，
+        避免嵌套 group-hover 导致父级 hover 时所有层级同时全开。
+    -->
+    <div class="pnm-item relative" :class="lvl === 0 ? 'h-full flex items-stretch' : ''">
+        <NuxtLink
+            :to="item.to"
+            :target="item.external ? '_blank' : undefined"
+            :rel="item.external ? 'noopener' : undefined"
+            class="pnm-trigger"
+            :class="{ 'pnm-trigger-root': lvl === 0, 'pnm-trigger-active': item.active }"
+            @click="onItemClick"
+        >
+            <span>{{ item.label }}</span>
+            <ChevronDown v-if="hasChildren && lvl === 0" class="w-3.5 h-3.5 opacity-60 shrink-0" />
+            <ChevronRight v-else-if="hasChildren" class="w-3 h-3 opacity-50 shrink-0" />
+        </NuxtLink>
+
+        <div
+            v-if="hasChildren"
+            class="pnm-panel absolute z-30"
+            :class="lvl === 0 ? 'left-0 top-full pt-1.5' : 'left-full top-0 pl-1'"
+        >
+            <div class="min-w-44 bg-[color:var(--md-bg)] rounded-lg border border-[color:var(--md-border)] shadow-lg py-1.5">
+                <LayoutNavMenu
+                    v-for="sub in item.children"
+                    :key="sub.to"
+                    :item="sub"
+                    :depth="lvl + 1"
+                />
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
-import type { RouteLocationNormalizedLoaded } from 'vue-router'
-import type { Menus } from '~/stores/interface'
-import { reactive, computed, nextTick, watch } from 'vue'
-import { useRoute, navigateTo } from 'nuxt/app'
+import { ChevronDown, ChevronRight } from 'lucide-vue-next'
 import { useSystemStore } from '~/stores/system'
-import { useI18n } from 'vue-i18n'
-import { Icon } from '~/components/icon'
-import MenuSub from './menu-sub.vue'
+import { useMenuDialog } from '~/composables/menu-dialog'
+import { MenuType, type Menus } from '~/stores/interface'
 
-const route = useRoute()
+defineOptions({ name: 'LayoutNavMenu' })
+
+/** 与统一 header 的 NavEntry/NavChild 同构（label/to/external/active/children） */
+export interface NavItem {
+    label: string
+    to: string
+    external: boolean
+    active: boolean
+    children: NavItem[] | null
+}
+
+const props = withDefaults(defineProps<{ item: NavItem; depth?: number }>(), { depth: 0 })
+const lvl = computed(() => props.depth)
+const hasChildren = computed(() => !!props.item.children?.length)
+
+// dialog 型菜单：弹窗渲染组件，不跳转路由（对齐框架 menu-sub 行为）。
+// web_menu 数据源不含 menu type，经框架 systemStore.site.head_nav 按 path 关联判定。
 const systemStore = useSystemStore()
-const { t } = useI18n()
+const { open: openMenuDialog } = useMenuDialog()
 
-interface Props {
-    showIcon?: boolean
-    mode?: 'horizontal' | 'vertical'
+function findFrameworkMenu(list: Menus[] | undefined, to: string): Menus | null {
+    for (const m of list ?? []) {
+        if (m.path && m.path === to) return m
+        const hit = findFrameworkMenu(m.children, to)
+        if (hit) return hit
+    }
+    return null
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    showIcon: false,
-    mode: 'horizontal',
-})
-
-/** 是否为垂直布局（移动端侧边抽屉） */
-const isVertical = computed(() => props.mode === 'vertical')
-
-const emit = defineEmits<{
-    'menu-click': []
-}>()
-
-const state = reactive({
-    activeMenu: '',
-    switchingLanguage: false,
-})
-
-// 是否有溢出菜单
-const hasOverflow = computed(() => systemStore.overflowNavMenu.length > 0)
-
-// 调试用：检查 navMenu 中是否有消息中心
-const navMenuKey = computed(() => {
-    const hasNotify = systemStore.visibleNavMenu?.some((m: Menus) => m.name === '消息中心' || m.path === '/notify')
-    import.meta.env.DEV && console.log('[Menu] visibleNavMenu has 消息中心:', hasNotify, 'menus:', systemStore.visibleNavMenu?.map((m: Menus) => m.name))
-    return hasNotify ? 'with-notify' : 'no-notify'
-})
-
-const setActiveMenu = (route: RouteLocationNormalizedLoaded) => {
-    if (route.path == '/') return (state.activeMenu = 'index')
-
-    // 同时在可见菜单和溢出菜单中搜索
-    const menuId = findMenus(route)
-    if (menuId) {
-        state.activeMenu = 'column-' + menuId
-    } else if (route.path.startsWith('/user')) {
-        state.activeMenu = 'user'
+function onItemClick(e: MouseEvent) {
+    if (props.item.external) return
+    const fw = findFrameworkMenu(systemStore.site.head_nav as Menus[], props.item.to)
+    if (fw && fw.type === MenuType.DIALOG && fw.path) {
+        e.preventDefault()
+        openMenuDialog(fw.path)
     }
 }
-
-const onSelect = (index: string) => {
-    // "更多"节点不需要高亮保持
-    if (index === 'overflow-more') return
-
-    if (noNeedActive(systemStore.headNav, index)) {
-        const oldActiveMenu = state.activeMenu
-        state.activeMenu = ''
-        nextTick(() => {
-            state.activeMenu = oldActiveMenu
-        })
-    }
-}
-
-const noNeedActive = (menus: Menus[], index: string) => {
-    if (index.indexOf('language-switch') === 0 || index == 'theme-switch') {
-        return true
-    }
-    return isExternalLink(menus, index)
-}
-
-const isExternalLink = (menus: Menus[], index: string): boolean => {
-    if (!menus || !Array.isArray(menus)) {
-        return false
-    }
-    
-    for (const menu of menus) {
-        if (!menu) continue
-        
-        const columnIndex = `column-${menu.id}`
-        if (columnIndex == index) {
-            return systemStore.isExternalLink(menu)
-        }
-        if (menu.children && Array.isArray(menu.children) && menu.children.length) {
-            const result = isExternalLink(menu.children, index)
-            if (result) return true
-        }
-    }
-    return false
-}
-
-const searchMenuIndex = (menus: Menus[], route: RouteLocationNormalizedLoaded): number | false => {
-    if (!menus || !Array.isArray(menus)) {
-        return false
-    }
-    
-    let find: boolean | number = false
-    for (const menu of menus) {
-        if (!menu) continue
-        
-        if (menu.id && menu.path == route.fullPath) {
-            return menu.id
-        }
-        if (menu.children && Array.isArray(menu.children) && menu.children.length) {
-            find = searchMenuIndex(menu.children, route)
-            if (find !== false) return find
-        }
-    }
-    return find
-}
-
-const handleClick = (path: string) => {
-    navigateTo(path)
-}
-
-const findMenus = (route: RouteLocationNormalizedLoaded) => {
-    // 移动端：直接在全部菜单中搜索
-    if (isVertical.value) {
-        const index = searchMenuIndex(systemStore.navMenu, route)
-        return index !== false ? index : false
-    }
-
-    // PC端：优先在可见菜单中搜索，再在溢出菜单中搜索
-    const visibleIndex = searchMenuIndex(systemStore.visibleNavMenu, route)
-    if (visibleIndex !== false) return visibleIndex
-
-    const overflowIndex = searchMenuIndex(systemStore.overflowNavMenu, route)
-    if (overflowIndex !== false) return overflowIndex
-
-    return false
-}
-
-setActiveMenu(route)
-watch(
-    () => route.fullPath,
-    () => {
-        setActiveMenu(route)
-    }
-)
 </script>
 
-<style scoped lang="scss">
-.header-user-box {
+<style scoped>
+.pnm-trigger {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: var(--md-text-2);
+    white-space: nowrap;
+    text-align: left;
+    transition: color 0.2s ease;
+}
+
+.pnm-trigger:hover {
+    color: var(--md-primary);
+}
+
+.pnm-trigger-active {
+    color: var(--md-primary);
+    font-weight: 500;
+}
+
+/* 顶级触发项：与顶栏普通导航项一致（通栏高度、15px、底部下划线选中态） */
+.pnm-trigger-root {
+    width: auto;
     position: relative;
-    .header-user-avatar {
-        width: 16px;
-        height: 16px;
-        margin-right: 4px;
-        border-radius: 50%;
-    }
-    .icon-header-user-avatar {
-        margin-left: 4px;
-        margin-right: 6px;
-    }
-}
-.el-sub-menu .icon,
-.el-menu-item .icon {
-    vertical-align: middle;
-    margin-right: 2px;
-    width: 24px;
-    text-align: center;
-    flex-shrink: 0;
-}
-.is-active > .icon {
-    color: var(--el-menu-active-color) !important;
-}
-.el-menu {
-    border-bottom: none;
-    border-right: none;
-    .theme-switch.is-active,
-    .language-switch.is-active {
-        border-bottom: none;
-        :deep(.el-sub-menu__title) {
-            border-bottom: none;
-        }
-    }
-}
-.theme-switch {
-    --el-menu-hover-bg-color: none;
-    padding-right: 0;
-}
-.vertical-theme-switch {
-    .theme-toggle-content {
-        padding: 0;
-    }
-}
-.theme-toggle-content {
-    padding-right: 0;
+    height: 100%;
+    padding: 0 14px;
+    font-size: 15px;
 }
 
-// 水平导航菜单：缩小菜单项左右内边距（默认过宽，单页最多六个菜单）
-.el-menu--horizontal {
-    :deep(> .el-menu-item),
-    :deep(> .el-sub-menu > .el-sub-menu__title) {
-        padding: 0 12px;
-    }
+.pnm-trigger-root::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: var(--md-primary);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
 }
 
-// "更多"溢出菜单样式
-.overflow-more-menu {
-    :deep(.el-sub-menu__title) {
-        display: flex;
-        align-items: center;
-    }
+.pnm-trigger-active::after {
+    transform: scaleX(1);
+}
+
+/* 子面板默认隐藏，仅当前行 hover 时展开其直属面板（子选择器限定，避免多级联动全开） */
+.pnm-panel {
+    display: none;
+}
+
+.pnm-item:hover > .pnm-panel {
+    display: block;
 }
 </style>
