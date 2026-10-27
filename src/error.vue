@@ -6,7 +6,7 @@
  * - 其他错误码（500 等）→ 简约降级视图（错误码 + 文案 + 返回首页）
  * - 按钮必须 clearError 清除错误态后再导航；无回退历史时兜底回首页
  */
-import AppNotFound from '~/components/common/AppNotFound.vue'
+import AppNotFound from '~/components/common/app-not-found.vue'
 import { Home } from 'lucide-vue-next'
 
 const props = defineProps<{

@@ -32,8 +32,8 @@
 <script lang="ts" setup>
 import layoutHeader from "./components/header.vue";
 import layoutFooter from "./components/footer.vue";
-import AppWidgetHost from "~/components/common/AppWidgetHost.vue";
-import MemberShell from "~/components/member/MemberShell.vue";
+import AppWidgetHost from "~/components/common/app-widget-host.vue";
+import MemberShell from "~/components/member/member-shell.vue";
 import { useLayoutScroll } from "~/composables/layout-scroll";
 import { useSiteConfig } from "~/composables/site-config";
 

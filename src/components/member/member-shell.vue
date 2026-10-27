@@ -25,7 +25,7 @@ import defaultAvatar from '~/assets/images/default_avatar.png'
 import { fullUrl } from '~/utils/common'
 import type { NavMenuItem } from '~/api/site'
 import { provideMemberShellCtx } from '~/composables/member-modules'
-import MemberAvatarCropper from '~/components/member/MemberAvatarCropper.vue'
+import MemberAvatarCropper from '~/components/member/member-avatar-cropper.vue'
 
 defineOptions({ name: 'MemberShell' })
 
