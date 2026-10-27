@@ -1,0 +1,101 @@
+/**
+ * 通用基础排版类（md- 前缀防全局污染，主工程与插件共用）：
+ * - .md-root：全站字体族基线（布局壳顶层挂载）；
+ * - .md-prose：富文本正文渲染重置排版（设计令牌 §1.5），消费 --md-* 语义变量，
+ *   明暗主题自动适配。
+ */
+.md-root {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.md-prose {
+  color: var(--md-text-1);
+  font-size: 15px;
+  line-height: 1.9;
+  word-break: break-word;
+}
+.md-prose h1,
+.md-prose h2,
+.md-prose h3,
+.md-prose h4 {
+  color: var(--md-text-1);
+  font-weight: 600;
+  margin: 1.2em 0 0.6em;
+  line-height: 1.4;
+}
+.md-prose h1 { font-size: 22px; }
+.md-prose h2 { font-size: 20px; }
+.md-prose h3 { font-size: 17px; }
+.md-prose h4 { font-size: 15px; }
+.md-prose p { margin: 0.7em 0; }
+.md-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.8em 0;
+}
+.md-prose a {
+  color: var(--md-primary);
+  text-decoration: none;
+}
+.md-prose a:hover { color: var(--el-color-primary-dark-2); text-decoration: underline; }
+.md-prose ul,
+.md-prose ol {
+  padding-left: 1.6em;
+  margin: 0.7em 0;
+}
+.md-prose ul { list-style: disc; }
+.md-prose ol { list-style: decimal; }
+.md-prose li { margin: 0.3em 0; }
+.md-prose blockquote {
+  border-left: 3px solid var(--md-primary);
+  background: var(--md-fill);
+  padding: 10px 14px;
+  margin: 1em 0;
+  color: var(--md-text-2);
+  border-radius: 0 6px 6px 0;
+}
+.md-prose pre {
+  background: #1f2329;
+  color: #e8eaed;
+  padding: 14px 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  margin: 1em 0;
+}
+.md-prose code {
+  background: #eef1f6;
+  color: #d63384;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+html.dark .md-prose pre { background: #1d1e1f; }
+html.dark .md-prose code { background: var(--el-fill-color); }
+.md-prose pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.md-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 14px;
+}
+.md-prose th,
+.md-prose td {
+  border: 1px solid var(--md-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+.md-prose th {
+  background: var(--md-fill);
+  font-weight: 500;
+}
+.md-prose hr {
+  border: none;
+  border-top: 1px solid var(--md-border);
+  margin: 1.5em 0;
+}

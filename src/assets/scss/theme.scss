@@ -1,0 +1,40 @@
+/**
+ * 主题语义变量层（主工程与插件共用 --md-* 命名）：
+ * - 亮色取值保持门户原硬编码像素观感；
+ * - 主色系直接引用 --el-color-primary*（编译期主色 + 主题面板切换的内联变量自动跟随）；
+ * - html.dark 下覆盖为 Element Plus 暗黑变量，使布局壳、会员中心与插件区块随暗黑外观联动。
+ */
+:root {
+    --md-primary: var(--el-color-primary);
+    --md-primary-light-3: var(--el-color-primary-light-3);
+    --md-primary-light-5: var(--el-color-primary-light-5);
+    --md-primary-light-7: var(--el-color-primary-light-7);
+    --md-primary-light-8: var(--el-color-primary-light-8);
+    --md-primary-light-9: var(--el-color-primary-light-9);
+    --md-primary-dark-2: var(--el-color-primary-dark-2);
+
+    --md-text-1: #1f2329;
+    --md-text-2: #646a73;
+    --md-text-3: #909399;
+
+    --md-border: #e5e8ef;
+    --md-fill: #f5f7fa;
+    --md-bg: #ffffff;
+    --md-bg-page: #f5f7fa;
+    --md-header-bg: rgba(255, 255, 255, 0.9);
+    /* 滚动后毛玻璃加深取值（亮/暗各自成套，禁止组件内硬编码白色） */
+    --md-header-bg-scrolled: rgba(255, 255, 255, 0.97);
+}
+
+html.dark {
+    --md-text-1: var(--el-text-color-primary);
+    --md-text-2: var(--el-text-color-regular);
+    --md-text-3: var(--el-text-color-secondary);
+
+    --md-border: var(--el-border-color-lighter);
+    --md-fill: var(--el-fill-color-light);
+    --md-bg: var(--el-bg-color);
+    --md-bg-page: var(--el-bg-color-page);
+    --md-header-bg: rgba(29, 30, 32, 0.9);
+    --md-header-bg-scrolled: rgba(29, 30, 32, 0.97);
+}

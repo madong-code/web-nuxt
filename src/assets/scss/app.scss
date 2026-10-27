@@ -30,6 +30,22 @@ body,
     font-size: var(--el-font-size-base);
 }
 
+/* 项目滚动由 layout 内的 el-scrollbar 统一接管，html/body 永远不会被撑高：
+   禁止 html 原生滚动条占位，消除右侧空槽；弹窗打开时清除 EP 给 body 的补偿内边距。 */
+html {
+    overflow: hidden;
+}
+body.el-popup-parent--hidden {
+    padding-right: 0 !important;
+}
+
+/* ElMessage 全局提示固定在抽屉/弹窗之上：
+   嵌套抽屉等弹窗链会持续抬升 z-index 计数，
+   全局提示若跟随计数可能被后开的弹窗遮挡（反馈不可见） */
+.el-message {
+    z-index: 3000 !important;
+}
+
 .w100 {
     width: 100% !important;
 }
