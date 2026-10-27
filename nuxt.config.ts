@@ -84,7 +84,7 @@ export default defineNuxtConfig({
   // 运行时配置（对应 .env / .env.development / .env.production）
   runtimeConfig: {
     // 服务端渲染时 API 内网地址（相对 /api 在 Node 端无法解析，必须为绝对地址）
-    apiServerBase: process.env.NUXT_API_SERVER_BASE || 'http://127.0.0.1:8501/api',
+    apiServerBase: process.env.NUXT_API_SERVER_BASE || 'http://127.0.0.1:8500/api',
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
       REQUEST_HEADER_CHANNEL_KEY: process.env.NUXT_PUBLIC_REQUEST_HEADER_CHANNEL_KEY || 'pc',
@@ -157,12 +157,12 @@ export default defineNuxtConfig({
       },
       proxy: {
         "/api": {
-          target: "http://127.0.0.1:8501",
+          target: "http://127.0.0.1:8500",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "/api"),
         },
         "/upload": {
-          target: "http://127.0.0.1:8501",
+          target: "http://127.0.0.1:8500",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/upload/, "/upload"),
         },

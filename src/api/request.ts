@@ -200,7 +200,7 @@ class Http {
   private resolveBaseUrl(runtimeConfig: ReturnType<typeof useRuntimeConfig>): string {
     const configured = this.options.baseURL || (runtimeConfig.public.API_BASE_URL as string) || ''
     if (import.meta.server && (!configured || configured.startsWith('/'))) {
-      return (runtimeConfig.apiServerBase as string) || 'http://127.0.0.1:8501/api'
+      return (runtimeConfig.apiServerBase as string) || 'http://127.0.0.1:8500/api'
     }
     return configured || `${location.origin}/api/`
   }
