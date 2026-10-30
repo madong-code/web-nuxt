@@ -275,8 +275,13 @@ export const useSystemStore = defineStore('system', {
         const configStore = useConfigStore()
 
         // 解析最终路由菜单模式：运行期后端配置 > 构建期环境变量 > 默认 backend
-        const buildMode: RoutingMode = useRuntimeConfig().public.ROUTING_MODE as RoutingMode
+        const runtimeConfig = useRuntimeConfig()
+        const buildMode: RoutingMode = runtimeConfig.public.ROUTING_MODE as RoutingMode
           || 'backend'
+        // 站名兜底：必须在首个 await 之前（Nuxt 上下文可用时）读取并缓存，
+        // 传给 configStore.initAllConfigs，避免其在 await fetchNavConfig 续体中
+        // 调用 useRuntimeConfig() 丢失上下文导致整段配置赋值不执行。
+        const fallbackSiteName = (runtimeConfig.public.SITE_NAME as string) || 'MaDong'
         let navMenu: Menus[] = []
         let memberMenu: Menus[] = []
         let headerActions: Menus[] = []
@@ -360,8 +365,8 @@ export const useSystemStore = defineStore('system', {
           menu_expand: currentMenuExpand
         }
 
-        // 加载前端配置（搜索、统计等）
-        await configStore.initAllConfigs()
+        // 加载前端配置（搜索、统计等），传入 await 前已捕获的站名兜底
+        await configStore.initAllConfigs(undefined, fallbackSiteName)
 
         return {
           nav_menu: processedNavMenu,

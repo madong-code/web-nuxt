@@ -156,10 +156,15 @@ export const useConfigStore = defineStore('config', {
          * @description 并行获取所有 Web 分组配置（站点设置、搜索、统计分析、登录配置等）
          * @param router - 可选的路由器实例，用于页面跳转控制
          */
-        async getWebGroupConfigs(router?: any) {
+        async getWebGroupConfigs(router?: any, fallbackSiteName?: string) {
             try {
-                // 站名兜底需在首个 await 前同步读取（useRuntimeConfig 依赖 Nuxt 实例上下文）
-                const fallbackSiteName = (useRuntimeConfig().public.SITE_NAME as string) || 'MaDong'
+                // 站名兜底优先使用调用方在 Nuxt 上下文可用时传入的值；
+                // 这里兜底 useRuntimeConfig() 仅在同步入口（如登录弹窗 setup 期）有上下文时才会执行。
+                // 若在 await 续体（SSR 深层 async 链 / getSiteInfoFn 中 await fetchNavConfig 之后）调用，
+                // 上下文已丢失，useRuntimeConfig() 会抛 [nuxt] instance unavailable，被外层 try/catch 吞掉，
+                // 导致整段赋值（登录/站点/搜索/支付配置）不执行，表现如同“后端没返回”。
+                const resolvedSiteName = fallbackSiteName
+                    ?? ((useRuntimeConfig().public.SITE_NAME as string) || 'MaDong')
                 // 并行获取所有配置
                 const [
                     loginConfigRes,
@@ -195,7 +200,7 @@ export const useConfigStore = defineStore('config', {
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
                     this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.site_name = siteSetting.site_name || fallbackSiteName
+                    this.siteSetting.site_name = siteSetting.site_name || resolvedSiteName
                     this.siteSetting.site_logo = siteSetting.site_logo || ''
                     this.siteSetting.site_keywords = siteSetting.site_keywords || ''
                     this.siteSetting.site_description = siteSetting.site_description || ''
@@ -242,8 +247,8 @@ export const useConfigStore = defineStore('config', {
          * 初始化所有配置
          * @description 一次性获取所有配置信息
          */
-        async initAllConfigs(router?: any) {
-            await this.getWebGroupConfigs(router)
+        async initAllConfigs(router?: any, fallbackSiteName?: string) {
+            await this.getWebGroupConfigs(router, fallbackSiteName)
         }
     }
 })
