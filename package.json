@@ -71,6 +71,7 @@
         "pinia": "^3.0.4",
         "sass": "^1.89.2",
         "typescript": "^5.9.2",
+        "unocss": "^66.13.0",
         "vite-tsconfig-paths": "^6.0.4",
         "vue-tsc": "^3.0.5"
     },
