@@ -196,28 +196,44 @@ export const useConfigStore = defineStore('config', {
                 }
 
                 // 更新站点设置（对应后台「网站设置→站点设置」，web_site_setting 行，分组 default）
+                // ⚠️ 每次都强制覆盖全部字段——即使后端返回空值也执行写入，
+                // 避免：① 前一次租户值残留到当前租户（|| 跳过空串保留旧值）；
+                //        ② 后端清空配置后前端仍显示旧值；
+                //        ③ SSR 缓存固化的旧值在客户端不更新。
                 const siteSetting = (siteSettingRes as any)?.data || siteSettingRes || {}
                 if (siteSetting && !Array.isArray(siteSetting)) {
                     this.siteSetting.site_open = siteSetting.site_open ?? 1
-                    this.siteSetting.site_url = siteSetting.site_url || (typeof window !== 'undefined' ? window.location.origin : '')
-                    this.siteSetting.site_name = siteSetting.site_name || resolvedSiteName
-                    this.siteSetting.site_logo = siteSetting.site_logo || ''
-                    this.siteSetting.site_keywords = siteSetting.site_keywords || ''
-                    this.siteSetting.site_description = siteSetting.site_description || ''
-                    this.siteSetting.site_copyright = siteSetting.site_copyright || ''
-                    this.siteSetting.site_record_no = siteSetting.site_record_no || ''
-                    this.siteSetting.site_icp_url = siteSetting.site_icp_url || 'https://beian.miit.gov.cn/'
-                    this.siteSetting.site_network_security = siteSetting.site_network_security || ''
-                    this.siteSetting.site_network_security_url = siteSetting.site_network_security_url || ''
+                    this.siteSetting.site_url = siteSetting.site_url
+                        ? String(siteSetting.site_url)
+                        : (typeof window !== 'undefined' ? window.location.origin : '')
+                    // 站名兜底链：后端值 → env → 'Madong'（每一环都非空才跳过）
+                    this.siteSetting.site_name = siteSetting.site_name && String(siteSetting.site_name).trim() !== ''
+                        ? String(siteSetting.site_name).trim()
+                        : resolvedSiteName
+                    // Logo 兜底链：后端值 → /logo.png（Nuxt public 默认资源）
+                    this.siteSetting.site_logo = siteSetting.site_logo && String(siteSetting.site_logo).trim() !== ''
+                        ? String(siteSetting.site_logo).trim()
+                        : '/logo.png'
+                    this.siteSetting.site_keywords = String(siteSetting.site_keywords ?? '')
+                    this.siteSetting.site_description = String(siteSetting.site_description ?? '')
+                    this.siteSetting.site_copyright = String(siteSetting.site_copyright ?? '')
+                    this.siteSetting.site_record_no = String(siteSetting.site_record_no ?? '')
+                    this.siteSetting.site_icp_url = siteSetting.site_icp_url && String(siteSetting.site_icp_url).trim() !== ''
+                        ? String(siteSetting.site_icp_url).trim()
+                        : 'https://beian.miit.gov.cn/'
+                    this.siteSetting.site_network_security = String(siteSetting.site_network_security ?? '')
+                    this.siteSetting.site_network_security_url = String(siteSetting.site_network_security_url ?? '')
                     // 存储模式与 CDN 域名（后端在 web_site_setting 响应中追加）
                     // 云存储模式下 fullUrl 必须用 CDN 域名拼资源地址，否则会请求站点域名下的本地文件而 404
-                    this.siteSetting.upload_mode = siteSetting.upload_mode || 'local'
-                    this.siteSetting.cdn_url = siteSetting.cdn_url || ''
-                    this.siteSetting.static_url = siteSetting.static_url || ''
+                    this.siteSetting.upload_mode = siteSetting.upload_mode && String(siteSetting.upload_mode).trim() !== ''
+                        ? String(siteSetting.upload_mode).trim()
+                        : 'local'
+                    this.siteSetting.cdn_url = String(siteSetting.cdn_url ?? '')
+                    this.siteSetting.static_url = String(siteSetting.static_url ?? '')
                     this.siteSetting.is_private = siteSetting.is_private === true
-                    this.siteSetting.storage_prefix = siteSetting.storage_prefix || ''
-                    this.upload_mode = this.siteSetting.upload_mode || 'local'
-                    this.cdn_url = this.siteSetting.cdn_url || ''
+                    this.siteSetting.storage_prefix = String(siteSetting.storage_prefix ?? '')
+                    this.upload_mode = this.siteSetting.upload_mode
+                    this.cdn_url = this.siteSetting.cdn_url
                     this.is_private = this.siteSetting.is_private
                     this.storage_prefix = this.siteSetting.storage_prefix
                 }
